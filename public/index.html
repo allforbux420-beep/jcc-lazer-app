@@ -5,11 +5,15 @@
 <title>JCC Laser</title>
 
 <style>
+
+/* =========================
+   BASE
+========================= */
 body {
     margin:0;
     font-family:Arial, sans-serif;
-    background: linear-gradient(135deg,#1a1a1a,#3a2a24);
-    color:#fff;
+    background:#f5f5f5;
+    color:#111;
 }
 
 /* HEADER */
@@ -17,110 +21,138 @@ body {
     text-align:center;
     padding:20px;
     font-size:22px;
-    border-bottom:1px solid #222;
+    background:#fff;
+    border-bottom:1px solid #ddd;
 }
 
-/* HERO */
+/* HERO (DARK ONLY HERE) */
 .hero {
-    text-align:center;
+    background: linear-gradient(135deg,#1a1a1a,#3a2a24);
+    color:#fff;
     padding:80px 20px;
+    text-align:center;
 }
 
 .hero h1 {
-    font-size:40px;
+    font-size:42px;
+    margin-bottom:10px;
+}
+
+.hero p {
+    color:#ccc;
 }
 
 .btn {
     background:#ff5a00;
-    padding:14px 20px;
+    padding:14px 22px;
     border:none;
     border-radius:8px;
     color:#fff;
     cursor:pointer;
+    font-size:16px;
 }
 
 /* =========================
-   CHAT
+   CLEAN CONTENT SECTION
 ========================= */
+.section {
+    background:#fff;
+    padding:40px;
+    border-radius:12px;
+    margin:40px auto;
+    max-width:1100px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
 
+/* =========================
+   CHAT (FORCED FIX)
+========================= */
 #chatToggle {
-    position: fixed;
-    bottom: 40px;
-    right: 20px;
-    background: #ff5a00;
-    padding: 14px 20px;
-    border-radius: 50px;
-    cursor: pointer;
-    z-index: 9999;
+    position:fixed;
+    bottom:40px;
+    right:20px;
+    background:#ff5a00;
+    color:#fff;
+    padding:14px 20px;
+    border-radius:50px;
+    cursor:pointer;
+    z-index:999999;
 }
 
 #chatBox {
-    position: fixed;
-    bottom: 110px;
-    right: 20px;
-    width: 320px;
-    height: 420px;
-    background: #1a1a1a;
-    border-radius: 16px;
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-    z-index: 9999;
+    position:fixed;
+    bottom:110px;
+    right:20px;
+    width:320px;
+    height:420px;
+    background:#1a1a1a;
+    border-radius:12px;
+    display:none;
+    flex-direction:column;
+    overflow:hidden;
+    z-index:999999;
 }
 
-/* HEADER */
+/* CHAT */
 .chat-header {
-    padding: 12px;
-    background: #111;
-    border-bottom: 1px solid #222;
+    padding:12px;
+    background:#111;
+    color:#fff;
 }
 
-/* BODY */
 .chat-body {
-    flex: 1;
-    padding: 10px;
-    overflow-y: auto;
+    flex:1;
+    padding:10px;
+    overflow-y:auto;
+    font-size:14px;
 }
 
-/* MESSAGES */
 .message {
-    margin: 8px 0;
-    padding: 10px;
-    border-radius: 10px;
-    max-width: 80%;
+    margin:8px 0;
+    padding:10px;
+    border-radius:10px;
+    max-width:80%;
 }
 
 .bot {
-    background: #2a2a2a;
-    color: #ccc;
+    background:#2a2a2a;
+    color:#ccc;
 }
 
 .user {
-    margin-left: auto;
-    background: #ff5a00;
-    color: #fff;
-    text-align: right;
+    margin-left:auto;
+    background:#ff5a00;
+    color:#fff;
 }
 
 /* INPUT */
 .chat-input {
-    display: flex;
+    display:flex;
 }
 
 .chat-input input {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    background: #111;
-    color: #fff;
+    flex:1;
+    padding:10px;
+    border:none;
+    background:#111;
+    color:#fff;
 }
 
 .chat-input button {
-    background: #ff5a00;
-    border: none;
-    color: #fff;
-    padding: 10px;
+    background:#ff5a00;
+    border:none;
+    color:#fff;
+    padding:10px;
 }
+
+/* MOBILE */
+@media (max-width:768px){
+    #chatBox {
+        width:95%;
+        right:10px;
+    }
+}
+
 </style>
 </head>
 
@@ -131,19 +163,36 @@ body {
 <div class="hero">
     <h1>Custom Laser Engraving That Lasts</h1>
     <p>Slate • Wood • Glass • Tumblers</p>
+    <br>
     <button class="btn" onclick="startOrder()">Start Your Order</button>
 </div>
 
-<!-- CHAT -->
+<!-- CLEAN PRODUCT SECTION -->
+<div class="section">
+    <h2>Personalized Engraved Slate</h2>
+    <p>
+        Turn your memories into a timeless keepsake with our custom engraved slate.
+        High contrast engraving, perfect for photos, names, and meaningful designs.
+    </p>
+
+    <h3>Available Sizes</h3>
+    <ul>
+        <li>4x6 – $25</li>
+        <li>5x7 – $35</li>
+        <li>6x8 – $40</li>
+        <li>8x10 – $45 ⭐ Most Popular</li>
+    </ul>
+</div>
+
+<!-- CHAT BUTTON -->
 <div id="chatToggle">💬 Support</div>
 
+<!-- CHAT BOX -->
 <div id="chatBox">
     <div class="chat-header">JCC Laser Support</div>
 
     <div class="chat-body" id="chat">
-        <div class="message bot">
-            Hi! What would you like engraved?
-        </div>
+        <div class="message bot">Hi! What would you like engraved?</div>
     </div>
 
     <div class="chat-input">
@@ -160,20 +209,21 @@ const box = document.getElementById("chatBox");
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 
+/* TOGGLE */
 toggle.onclick = () => {
-    box.style.display = box.style.display === "flex" ? "none" : "flex";
+    box.style.display = box.style.display==="flex"?"none":"flex";
 };
 
 function startOrder(){
-    box.style.display = "flex";
+    box.style.display="flex";
 }
 
+/* CHAT FLOW */
 function send(){
     let text = input.value.trim();
     if(!text) return;
 
-    input.value = "";
-
+    input.value="";
     chat.innerHTML += `<div class="message user">${text}</div>`;
     chat.scrollTop = chat.scrollHeight;
 
@@ -186,13 +236,6 @@ function send(){
     if(!order.size){
         order.size = text;
         order.price = text.includes("8") ? 45 : 25;
-
-        chat.innerHTML += `<div class="message bot">What would you like engraved?</div>`;
-        return;
-    }
-
-    if(!order.design){
-        order.design = text;
         chat.innerHTML += `<div class="message bot">What name should we put?</div>`;
         return;
     }
@@ -212,18 +255,28 @@ function send(){
     }
 }
 
+/* CHECKOUT */
 function checkout(){
-    fetch("/create-checkout-session", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+    fetch("/create-checkout-session",{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
         body: JSON.stringify(order)
     })
-    .then(res => res.json())
-    .then(data => {
+    .then(res=>res.json())
+    .then(data=>{
         window.location = data.url;
     });
+}
+
+/* SUCCESS / CANCEL */
+const params = new URLSearchParams(window.location.search);
+
+if (params.get("success")) {
+    chat.innerHTML += `<div class="message bot">✅ Payment received! Your order is in production.</div>`;
+}
+
+if (params.get("cancel")) {
+    chat.innerHTML += `<div class="message bot">❌ Checkout canceled. Want to continue?</div>`;
 }
 </script>
 
