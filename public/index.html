@@ -8,24 +8,23 @@
 body {
     margin:0;
     font-family:Arial, sans-serif;
-    background: linear-gradient(135deg,#1a1a1a,#3a2a24);
-    color:#fff;
+    background:#f5f5f5;
+    color:#111;
 }
 
 .header {
     text-align:center;
     padding:20px;
     font-size:22px;
-    border-bottom:1px solid #222;
+    background:#fff;
+    border-bottom:1px solid #ddd;
 }
 
 .hero {
-    text-align:center;
+    background: linear-gradient(135deg,#1a1a1a,#3a2a24);
+    color:#fff;
     padding:80px 20px;
-}
-
-.hero h1 {
-    font-size:40px;
+    text-align:center;
 }
 
 .btn {
@@ -44,75 +43,83 @@ body {
     margin:40px auto;
     max-width:1100px;
     box-shadow:0 10px 30px rgba(0,0,0,0.1);
-    color:#000;
 }
 
 /* CHAT */
-#jcc-chat {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 320px;
-    background: #1a1a1a;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-    overflow: hidden;
+#chatToggle {
+    position:fixed;
+    bottom:40px;
+    right:20px;
+    background:#ff5a00;
+    color:#fff;
+    padding:14px 20px;
+    border-radius:50px;
+    cursor:pointer;
+}
+
+#chatBox {
+    position:fixed;
+    bottom:110px;
+    right:20px;
+    width:320px;
+    height:420px;
+    background:#1a1a1a;
+    border-radius:12px;
+    display:none;
+    flex-direction:column;
+    overflow:hidden;
 }
 
 .chat-header {
-    padding: 12px;
-    background: #111;
-    font-weight: bold;
+    padding:12px;
+    background:#111;
+    color:#fff;
 }
 
 .chat-body {
-    height: 300px;
-    overflow-y: auto;
-    padding: 10px;
+    flex:1;
+    padding:10px;
+    overflow-y:auto;
 }
 
 .message {
-    margin: 8px 0;
-    padding: 10px;
-    border-radius: 10px;
-    max-width: 80%;
+    margin:8px 0;
+    padding:10px;
+    border-radius:10px;
+    max-width:80%;
 }
 
 .bot {
-    background: #2a2a2a;
+    background:#2a2a2a;
+    color:#ccc;
 }
 
 .user {
-    background: #ff5a00;
-    margin-left: auto;
-    text-align: right;
+    margin-left:auto;
+    background:#ff5a00;
+    color:#fff;
 }
 
 .chat-input {
-    display: flex;
+    display:flex;
 }
 
 .chat-input input {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    background: #111;
-    color: #fff;
+    flex:1;
+    padding:10px;
+    border:none;
 }
 
 .chat-input button {
-    background: #ff5a00;
-    border: none;
-    color: #fff;
-    padding: 10px;
+    background:#ff5a00;
+    border:none;
+    color:#fff;
+    padding:10px;
 }
 
 #imageUpload {
     width:100%;
-    background:#111;
-    color:#fff;
     padding:8px;
-    border:none;
 }
 </style>
 </head>
@@ -128,12 +135,15 @@ body {
 </div>
 
 <div class="section">
-    <h2>Premium Custom Engraving</h2>
-    <p>Upload your design, choose your size, and we’ll laser engrave it permanently.</p>
+    <h2>Upload Your Image & Order</h2>
+    <p>Choose your size, upload your design, and we engrave it permanently.</p>
 </div>
 
-<!-- CHAT -->
-<div id="jcc-chat" style="display:none;">
+<!-- CHAT BUTTON -->
+<div id="chatToggle" onclick="openChat()">💬 Support</div>
+
+<!-- CHAT BOX -->
+<div id="chatBox">
     <div class="chat-header">JCC Laser Support</div>
 
     <div class="chat-body" id="chat">
@@ -142,6 +152,7 @@ body {
 
     <!-- IMAGE UPLOAD -->
     <input type="file" id="imageUpload" accept="image/*">
+    <div id="preview"></div>
 
     <div class="chat-input">
         <input id="input" placeholder="Type your message...">
@@ -153,28 +164,42 @@ body {
 let order = {};
 let uploadedImage = null;
 
-function openChat(){
-    document.getElementById("jcc-chat").style.display = "block";
-}
-
-// IMAGE TO BASE64
-document.getElementById("imageUpload").addEventListener("change", function(e){
-    const file = e.target.files[0];
-    const reader = new FileReader();
-
-    reader.onloadend = function(){
-        uploadedImage = reader.result;
-    };
-
-    if(file){
-        reader.readAsDataURL(file);
-    }
-});
-
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
+const preview = document.getElementById("preview");
 
-// CHAT FLOW
+/* OPEN CHAT */
+function openChat(){
+    document.getElementById("chatBox").style.display = "flex";
+}
+
+/* IMAGE UPLOAD + PREVIEW */
+document.getElementById("imageUpload").addEventListener("change", function(e){
+    const file = e.target.files[0];
+
+    if (!file) {
+        console.log("No file selected");
+        return;
+    }
+
+    console.log("File selected:", file.name);
+
+    const reader = new FileReader();
+
+    reader.onload = function(e){
+        uploadedImage = e.target.result;
+
+        console.log("Image ready ✅");
+
+        preview.innerHTML = `
+            <img src="${uploadedImage}" style="max-width:100%;border-radius:8px;margin-top:10px;">
+        `;
+    };
+
+    reader.readAsDataURL(file);
+});
+
+/* CHAT FLOW */
 function send(){
     let text = input.value.trim();
     if(!text) return;
@@ -212,8 +237,10 @@ function send(){
     }
 }
 
-// CHECKOUT
+/* CHECKOUT */
 async function checkout(){
+    console.log("Sending image:", uploadedImage);
+
     const res = await fetch("/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
