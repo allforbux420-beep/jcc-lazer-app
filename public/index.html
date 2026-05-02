@@ -241,18 +241,18 @@ function send(){
     }
 
     if(!order.name){
-        order.name = text;
+    order.name = text;
 
-        chat.innerHTML += `
-        <div class="message bot">
-        <strong>Order Summary:</strong><br>
-        ${order.item}<br>
-        ${order.size}<br>
-        $${order.price}<br><br>
-        <button onclick="checkout()">Checkout</button>
-        </div>`;
-        return;
-    }
+    chat.innerHTML += `
+    <div class="message bot">
+    Upload your image (optional):
+    <br><br>
+    <input type="file" accept="image/*" onchange="handleUpload(event)">
+    <br><br>
+    <button onclick="skipUpload()">Skip</button>
+    </div>`;
+    return;
+}
 }
 
 /* CHECKOUT */
