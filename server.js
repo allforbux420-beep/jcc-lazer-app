@@ -26,7 +26,7 @@ app.post("/create-checkout-session", async (req, res) => {
         }],
         mode: "payment",
         success_url: "https://jcc-lazer-app.onrender.com?success=true",
-        cancel_url: "https://your-app.onrender.com?cancel=true"
+        cancel_url: "https://jcc-lazer-app.onrender.com?cancel=true"
     });
 
     res.json({ url: session.url });
