@@ -32,4 +32,4 @@ app.post("/create-checkout-session", async (req, res) => {
     res.json({ url: session.url });
 });
 
-app.listen(3000, () => console.log("Running on 3000"));er
+app.listen(3000, () => console.log("Running on 3000"));
