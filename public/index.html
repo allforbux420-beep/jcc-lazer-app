@@ -8,32 +8,29 @@
 body {
     margin:0;
     font-family:Arial, sans-serif;
-    background:#f5f5f5;
-    color:#111;
+    background: linear-gradient(135deg,#1a1a1a,#3a2a24);
+    color:#fff;
 }
 
 .header {
     text-align:center;
     padding:20px;
     font-size:22px;
-    background:#fff;
-    border-bottom:1px solid #ddd;
+    border-bottom:1px solid #222;
 }
 
 .hero {
-    background: linear-gradient(135deg,#1a1a1a,#3a2a24);
-    color:#fff;
-    padding:80px 20px;
     text-align:center;
+    padding:80px 20px;
 }
 
 .hero h1 {
-    font-size:42px;
+    font-size:40px;
 }
 
 .btn {
     background:#ff5a00;
-    padding:14px 22px;
+    padding:14px 20px;
     border:none;
     border-radius:8px;
     color:#fff;
@@ -47,82 +44,75 @@ body {
     margin:40px auto;
     max-width:1100px;
     box-shadow:0 10px 30px rgba(0,0,0,0.1);
+    color:#000;
 }
 
 /* CHAT */
-#chatToggle {
-    position:fixed;
-    bottom:40px;
-    right:20px;
-    background:#ff5a00;
-    color:#fff;
-    padding:14px 20px;
-    border-radius:50px;
-    cursor:pointer;
-    z-index:999999;
-}
-
-#chatBox {
-    position:fixed;
-    bottom:110px;
-    right:20px;
-    width:320px;
-    height:420px;
-    background:#1a1a1a;
-    border-radius:12px;
-    display:none;
-    flex-direction:column;
-    overflow:hidden;
+#jcc-chat {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 320px;
+    background: #1a1a1a;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    overflow: hidden;
 }
 
 .chat-header {
-    padding:12px;
-    background:#111;
-    color:#fff;
+    padding: 12px;
+    background: #111;
+    font-weight: bold;
 }
 
 .chat-body {
-    flex:1;
-    padding:10px;
-    overflow-y:auto;
-    font-size:14px;
+    height: 300px;
+    overflow-y: auto;
+    padding: 10px;
 }
 
 .message {
-    margin:8px 0;
-    padding:10px;
-    border-radius:10px;
-    max-width:80%;
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 80%;
 }
 
 .bot {
-    background:#2a2a2a;
-    color:#ccc;
+    background: #2a2a2a;
 }
 
 .user {
-    margin-left:auto;
-    background:#ff5a00;
-    color:#fff;
+    background: #ff5a00;
+    margin-left: auto;
+    text-align: right;
 }
 
 .chat-input {
-    display:flex;
+    display: flex;
 }
 
 .chat-input input {
-    flex:1;
-    padding:10px;
-    border:none;
-    background:#111;
-    color:#fff;
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: #111;
+    color: #fff;
 }
 
 .chat-input button {
-    background:#ff5a00;
-    border:none;
+    background: #ff5a00;
+    border: none;
+    color: #fff;
+    padding: 10px;
+}
+
+#imageUpload {
+    width:100%;
+    background:#111;
     color:#fff;
-    padding:10px;
+    padding:8px;
+    border:none;
 }
 </style>
 </head>
@@ -134,52 +124,63 @@ body {
 <div class="hero">
     <h1>Custom Laser Engraving That Lasts</h1>
     <p>Slate • Wood • Glass • Tumblers</p>
-    <br>
-    <button class="btn" onclick="startOrder()">Start Your Order</button>
+    <button class="btn" onclick="openChat()">Start Your Order</button>
 </div>
 
 <div class="section">
-    <h2>Personalized Engraved Slate</h2>
-    <p>Upload your photo and we engrave it permanently.</p>
+    <h2>Premium Custom Engraving</h2>
+    <p>Upload your design, choose your size, and we’ll laser engrave it permanently.</p>
 </div>
 
-<div id="chatToggle">💬 Support</div>
-
-<div id="chatBox">
+<!-- CHAT -->
+<div id="jcc-chat" style="display:none;">
     <div class="chat-header">JCC Laser Support</div>
 
     <div class="chat-body" id="chat">
-        <div class="message bot">Hi! What would you like engraved?</div>
+        <div class="message bot">What would you like engraved?</div>
     </div>
 
+    <!-- IMAGE UPLOAD -->
+    <input type="file" id="imageUpload" accept="image/*">
+
     <div class="chat-input">
-        <input id="input" placeholder="Type your message..." />
+        <input id="input" placeholder="Type your message...">
         <button onclick="send()">Send</button>
     </div>
 </div>
 
 <script>
 let order = {};
+let uploadedImage = null;
 
-const toggle = document.getElementById("chatToggle");
-const box = document.getElementById("chatBox");
+function openChat(){
+    document.getElementById("jcc-chat").style.display = "block";
+}
+
+// IMAGE TO BASE64
+document.getElementById("imageUpload").addEventListener("change", function(e){
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onloadend = function(){
+        uploadedImage = reader.result;
+    };
+
+    if(file){
+        reader.readAsDataURL(file);
+    }
+});
+
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 
-toggle.onclick = () => {
-    box.style.display = box.style.display==="flex"?"none":"flex";
-};
-
-function startOrder(){
-    box.style.display="flex";
-}
-
-/* CHAT FLOW */
+// CHAT FLOW
 function send(){
     let text = input.value.trim();
     if(!text) return;
 
-    input.value="";
+    input.value = "";
+
     chat.innerHTML += `<div class="message user">${text}</div>`;
     chat.scrollTop = chat.scrollHeight;
 
@@ -201,75 +202,32 @@ function send(){
 
         chat.innerHTML += `
         <div class="message bot">
-        Upload your image (optional):<br><br>
-        <input type="file" accept="image/*" onchange="handleUpload(event)">
-        <br><br>
-        <button onclick="skipUpload()">Skip</button>
+        <strong>Order Summary:</strong><br>
+        ${order.item}<br>
+        ${order.size}<br>
+        $${order.price}<br><br>
+        <button onclick="checkout()">Checkout</button>
         </div>`;
         return;
     }
 }
 
-/* IMAGE UPLOAD */
-function handleUpload(event){
-    const file = event.target.files[0];
-    if(!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = function(e){
-        order.image = e.target.result;
-
-        chat.innerHTML += `
-        <div class="message user">[Image uploaded]</div>
-        <div class="message bot">
-            <img src="${order.image}" style="max-width:100%;border-radius:8px;">
-        </div>
-        `;
-
-        showSummary();
-    };
-
-    reader.readAsDataURL(file);
-}
-
-function skipUpload(){
-    showSummary();
-}
-
-function showSummary(){
-    chat.innerHTML += `
-    <div class="message bot">
-    <strong>Order Summary:</strong><br>
-    ${order.item}<br>
-    ${order.size}<br>
-    $${order.price}<br><br>
-    <button onclick="checkout()">Checkout</button>
-    </div>`;
-}
-
-/* CHECKOUT */
-function checkout(){
-    fetch("/create-checkout-session",{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify(order)
-    })
-    .then(res=>res.json())
-    .then(data=>{
-        window.location = data.url;
+// CHECKOUT
+async function checkout(){
+    const res = await fetch("/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            item: order.item,
+            size: order.size,
+            price: order.price,
+            name: order.name,
+            image: uploadedImage
+        })
     });
-}
 
-/* SUCCESS / CANCEL */
-const params = new URLSearchParams(window.location.search);
-
-if (params.get("success")) {
-    chat.innerHTML += `<div class="message bot">✅ Payment received! Your order is in production.</div>`;
-}
-
-if (params.get("cancel")) {
-    chat.innerHTML += `<div class="message bot">❌ Checkout canceled.</div>`;
+    const data = await res.json();
+    window.location = data.url;
 }
 </script>
 
