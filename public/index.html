@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>JCC Laser</title>
+
+<style>
+body {
+    margin:0;
+    font-family:Arial, sans-serif;
+    background: linear-gradient(135deg,#1a1a1a,#3a2a24);
+    color:#fff;
+}
+
+/* HEADER */
+.header {
+    text-align:center;
+    padding:20px;
+    font-size:22px;
+    border-bottom:1px solid #222;
+}
+
+/* HERO */
+.hero {
+    text-align:center;
+    padding:80px 20px;
+}
+
+.hero h1 {
+    font-size:40px;
+}
+
+.btn {
+    background:#ff5a00;
+    padding:14px 20px;
+    border:none;
+    border-radius:8px;
+    color:#fff;
+    cursor:pointer;
+}
+
+/* =========================
+   CHAT
+========================= */
+
+#chatToggle {
+    position: fixed;
+    bottom: 40px;
+    right: 20px;
+    background: #ff5a00;
+    padding: 14px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    z-index: 9999;
+}
+
+#chatBox {
+    position: fixed;
+    bottom: 110px;
+    right: 20px;
+    width: 320px;
+    height: 420px;
+    background: #1a1a1a;
+    border-radius: 16px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+/* HEADER */
+.chat-header {
+    padding: 12px;
+    background: #111;
+    border-bottom: 1px solid #222;
+}
+
+/* BODY */
+.chat-body {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+/* MESSAGES */
+.message {
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 80%;
+}
+
+.bot {
+    background: #2a2a2a;
+    color: #ccc;
+}
+
+.user {
+    margin-left: auto;
+    background: #ff5a00;
+    color: #fff;
+    text-align: right;
+}
+
+/* INPUT */
+.chat-input {
+    display: flex;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: #111;
+    color: #fff;
+}
+
+.chat-input button {
+    background: #ff5a00;
+    border: none;
+    color: #fff;
+    padding: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">JCC Laser</div>
+
+<div class="hero">
+    <h1>Custom Laser Engraving That Lasts</h1>
+    <p>Slate • Wood • Glass • Tumblers</p>
+    <button class="btn" onclick="startOrder()">Start Your Order</button>
+</div>
+
+<!-- CHAT -->
+<div id="chatToggle">💬 Support</div>
+
+<div id="chatBox">
+    <div class="chat-header">JCC Laser Support</div>
+
+    <div class="chat-body" id="chat">
+        <div class="message bot">
+            Hi! What would you like engraved?
+        </div>
+    </div>
+
+    <div class="chat-input">
+        <input id="input" placeholder="Type your message..." />
+        <button onclick="send()">Send</button>
+    </div>
+</div>
+
+<script>
+let order = {};
+
+const toggle = document.getElementById("chatToggle");
+const box = document.getElementById("chatBox");
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+
+toggle.onclick = () => {
+    box.style.display = box.style.display === "flex" ? "none" : "flex";
+};
+
+function startOrder(){
+    box.style.display = "flex";
+}
+
+function send(){
+    let text = input.value.trim();
+    if(!text) return;
+
+    input.value = "";
+
+    chat.innerHTML += `<div class="message user">${text}</div>`;
+    chat.scrollTop = chat.scrollHeight;
+
+    if(!order.item){
+        order.item = text;
+        chat.innerHTML += `<div class="message bot">What size? (4x6 or 8x10)</div>`;
+        return;
+    }
+
+    if(!order.size){
+        order.size = text;
+        order.price = text.includes("8") ? 45 : 25;
+
+        chat.innerHTML += `<div class="message bot">What would you like engraved?</div>`;
+        return;
+    }
+
+    if(!order.design){
+        order.design = text;
+        chat.innerHTML += `<div class="message bot">What name should we put?</div>`;
+        return;
+    }
+
+    if(!order.name){
+        order.name = text;
+
+        chat.innerHTML += `
+        <div class="message bot">
+        <strong>Order Summary:</strong><br>
+        ${order.item}<br>
+        ${order.size}<br>
+        $${order.price}<br><br>
+        <button onclick="checkout()">Checkout</button>
+        </div>`;
+        return;
+    }
+}
+
+function checkout(){
+    fetch("/create-checkout-session", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(order)
+    })
+    .then(res => res.json())
+    .then(data => {
+        window.location = data.url;
+    });
+}
+</script>
+
+</body>
+</html>
