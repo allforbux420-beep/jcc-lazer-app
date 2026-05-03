@@ -95,6 +95,26 @@ body {
     color:#fff;
     padding:10px;
 }
+<style>
+/* ===== FORCE REMOVE ARTICULATION CURVE ===== */
+section,
+.section,
+[class*="section"],
+[class*="hero"] {
+  border-radius: 0 !important;
+  overflow: visible !important;
+}
+
+/* remove shape dividers */
+svg {
+  display: none !important;
+}
+
+/* kill masking */
+* {
+  clip-path: none !important;
+  mask: none !important;
+}
 </style>
 
 </head>
