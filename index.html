@@ -213,7 +213,7 @@ function send(){
     }
 }
 
-async function checkout(){
+async function checkout() {
     try {
         const res = await fetch("/create-checkout-session", {
             method: "POST",
@@ -228,25 +228,25 @@ async function checkout(){
             })
         });
 
-        if(!res.ok){
+        if (!res.ok) {
             const text = await res.text();
             console.error("Server error:", text);
-            alert("Server error during checkout");
+            alert("Checkout failed (server error)");
             return;
         }
 
         const data = await res.json();
 
-        if(data.url){
+        if (data.url) {
             window.location.href = data.url;
         } else {
             console.error("No URL returned:", data);
-            alert("Checkout failed");
+            alert("Checkout failed (no URL)");
         }
 
-    } catch (err){
+    } catch (err) {
         console.error("Checkout error:", err);
-        alert("Checkout failed");
+        alert("Checkout crashed");
     }
 }
 </script>
