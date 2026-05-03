@@ -118,9 +118,9 @@ Rules:
 - Be friendly and helpful
 - Recommend products when user is unsure
 - Suggest upgrades (bigger sizes look better for photos)
-- If user asks price → use inventory above
+- If user asks price, use inventory above
 - Keep responses short and natural
-
+`
         },
         {
           role: "user",
