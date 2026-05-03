@@ -121,7 +121,7 @@ svg {
 
 <body>
 
-<div class="header">JCC Laser</div>
+<div class="header">JCC Lazer</div>
 
 <div class="hero">
     <h1>Custom Lazer Engraving That Lasts</h1>
@@ -129,7 +129,7 @@ svg {
     <button class="btn" onclick="startOrder()">Start Your Order</button>
 </div>
 
-<div id="chatToggle">💬 Support</div>
+<div id="chatToggle" onclick="openChat()">💬 Support</div>
 
 <div id="chatBox">
     <div class="chat-header">JCC Lazer Support</div>
@@ -155,9 +155,9 @@ const box = document.getElementById("chatBox");
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 
-toggle.onclick = () => {
+function openChat() {
     box.style.display = box.style.display === "flex" ? "none" : "flex";
-};
+}
 
 function startOrder(){
     box.style.display = "flex";
@@ -209,13 +209,11 @@ function send(){
 
         const btn = document.createElement("button");
         btn.textContent = "Checkout";
-
         btn.onclick = checkout;
 
         wrapper.appendChild(btn);
         chat.appendChild(wrapper);
 
-        // IMAGE HANDLER
         const fileInput = wrapper.querySelector("#fileInput");
         fileInput.addEventListener("change", function(e){
             const file = e.target.files[0];
@@ -223,7 +221,6 @@ function send(){
 
             reader.onloadend = () => {
                 order.image = reader.result;
-                console.log("Image saved");
             };
 
             if(file) reader.readAsDataURL(file);
@@ -237,9 +234,7 @@ async function checkout() {
     try {
         const res = await fetch("/create-checkout-session", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 item: order.item,
                 size: order.size,
@@ -248,28 +243,19 @@ async function checkout() {
             })
         });
 
-        if (!res.ok) {
-            const text = await res.text();
-            console.error("Server error:", text);
-            alert("Checkout failed (server error)");
-            return;
-        }
-
         const data = await res.json();
 
         if (data.url) {
             window.location.href = data.url;
         } else {
-            console.error("No URL returned:", data);
-            alert("Checkout failed (no URL)");
+            alert("Checkout failed");
         }
 
     } catch (err) {
-        console.error("Checkout error:", err);
+        console.error(err);
         alert("Checkout crashed");
     }
 }
 </script>
-
 </body>
 </html>
