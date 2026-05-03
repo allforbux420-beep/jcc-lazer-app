@@ -1,37 +1,21 @@
 [
-  { "name": "Slate 4x6x3", "item": "slate", "size": "4x6", "price": 29.95 },
-  { "name": "Slate 8x4x3", "item": "slate", "size": "8x4", "price": 27.95 },
-  { "name": "Slate 10x8x3", "item": "slate", "size": "10x8", "price": 44.95 },
-  { "name": "Slate 12x9x3", "item": "slate", "size": "12x9", "price": 59.95 },
-  { "name": "Slate 12x10x3", "item": "slate", "size": "12x10", "price": 69.95 },
+  { "name": "Slate 4x6", "item": "slate", "size": "4x6", "price": 29.95, "stock": 5 },
+  { "name": "Slate 8x4", "item": "slate", "size": "8x4", "price": 27.95, "stock": 3 },
+  { "name": "Slate 10x8", "item": "slate", "size": "10x8", "price": 44.95, "stock": 2 },
+  { "name": "Slate 12x9", "item": "slate", "size": "12x9", "price": 59.95, "stock": 0 },
+  { "name": "Slate 12x10", "item": "slate", "size": "12x10", "price": 69.95, "stock": 1 },
 
-  { "name": "Coaster Slate Round 4x4", "item": "coaster", "size": "4x4", "price": 12.95 },
-  { "name": "Coaster Slate Square 4x4", "item": "coaster", "size": "4x4", "price": 12.95 },
-  { "name": "Coaster Slate Heart 4x4", "item": "coaster", "size": "4x4", "price": 12.95 },
-  { "name": "Coaster Slate Hexagon 4x4", "item": "coaster", "size": "4x4", "price": 12.95 },
-  { "name": "Coaster Cork Round 4x4", "item": "coaster", "size": "4x4", "price": 9.95 },
-  { "name": "Coaster Cork Square 4x4", "item": "coaster", "size": "4x4", "price": 9.95 },
+  { "name": "Cutting Board 6x8", "item": "cutting board", "size": "6x8", "price": 29.95, "stock": 4 },
+  { "name": "Cutting Board 10x8", "item": "cutting board", "size": "10x8", "price": 39.95, "stock": 2 },
+  { "name": "Cutting Board 12x9", "item": "cutting board", "size": "12x9", "price": 49.95, "stock": 1 },
 
-  { "name": "Cutting Board 6x8", "item": "cutting board", "size": "6x8", "price": 29.95 },
-  { "name": "Cutting Board 10x8", "item": "cutting board", "size": "10x8", "price": 39.95 },
-  { "name": "Cutting Board 12x9", "item": "cutting board", "size": "12x9", "price": 49.95 },
+  { "name": "Acrylic Black 4x6", "item": "acrylic", "size": "4x6", "price": 22.95, "stock": 6 },
+  { "name": "Acrylic Clear 5x7", "item": "acrylic", "size": "5x7", "price": 34.95, "stock": 2 },
 
-  { "name": "Acrylic Black 4x4x3", "item": "acrylic", "size": "4x4", "price": 18.95 },
-  { "name": "Acrylic Black 4x6x3", "item": "acrylic", "size": "4x6", "price": 22.95 },
-  { "name": "Acrylic Black 6x8x3", "item": "acrylic", "size": "6x8", "price": 34.95 },
-  { "name": "Acrylic Clear 4x4x3", "item": "acrylic", "size": "4x4", "price": 19.95 },
-  { "name": "Acrylic Clear 4x6x3", "item": "acrylic", "size": "4x6", "price": 24.95 },
-  { "name": "Acrylic Clear 5x7x3", "item": "acrylic", "size": "5x7", "price": 34.95 },
+  { "name": "Coaster Slate 4x4", "item": "coaster", "size": "4x4", "price": 12.95, "stock": 10 },
+  { "name": "Coaster Cork 4x4", "item": "coaster", "size": "4x4", "price": 9.95, "stock": 8 },
 
-  { "name": "Basswood 4x4x3", "item": "wood", "size": "4x4", "price": 14.95 },
-  { "name": "Poplar Wood 5x5x3", "item": "wood", "size": "5x5", "price": 18.95 },
-  { "name": "Baltic Birch 5x7x3", "item": "wood", "size": "5x7", "price": 24.95 },
-  { "name": "Baltic Birch 6x8x3", "item": "wood", "size": "6x8", "price": 29.95 },
-  { "name": "Baltic Birch 6x12x3", "item": "wood", "size": "6x12", "price": 39.95 },
-  { "name": "Baltic Birch 8x8x3", "item": "wood", "size": "8x8", "price": 34.95 },
-  { "name": "Basswood 12x12x3", "item": "wood", "size": "12x12", "price": 39.95 },
+  { "name": "Wine Glass 15oz", "item": "glass", "size": "15oz", "price": 18.95, "stock": 5 },
 
-  { "name": "Wine Glass 15oz", "item": "glass", "size": "15oz", "price": 18.95 },
-
-  { "name": "Flask 8oz Silver", "item": "flask", "size": "8oz", "price": 21.95 }
+  { "name": "Flask 8oz", "item": "flask", "size": "8oz", "price": 21.95, "stock": 3 }
 ]

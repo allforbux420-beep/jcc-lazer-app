@@ -6,29 +6,17 @@ const inventory = require("./inventory.json");
 
 const app = express();
 
-// =========================
-// MIDDLEWARE
-// =========================
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
 
-// =========================
-// STRIPE
-// =========================
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-// =========================
-// CLOUDINARY
-// =========================
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// =========================
-// OPENAI
-// =========================
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
@@ -40,6 +28,16 @@ app.post("/create-checkout-session", async (req, res) => {
   try {
     const { item, size, price, image } = req.body;
 
+    const product = inventory.find(p =>
+      p.item === item && p.size === size
+    );
+
+    if (!product || product.stock <= 0) {
+      return res.status(400).json({
+        error: "Item out of stock"
+      });
+    }
+
     let imageUrl = null;
 
     if (image) {
@@ -49,6 +47,9 @@ app.post("/create-checkout-session", async (req, res) => {
       });
       imageUrl = upload.secure_url;
     }
+
+    // 🔥 reduce stock AFTER purchase attempt
+    product.stock -= 1;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -79,30 +80,43 @@ app.post("/create-checkout-session", async (req, res) => {
 });
 
 // =========================
-// CHAT (SMART + SAFE)
+// CHAT WITH STOCK LOGIC
 // =========================
 app.post("/chat", async (req, res) => {
   try {
     const message = req.body.message.toLowerCase();
 
-    // 🔹 HARD MATCH (fast + accurate pricing)
+    // 🔹 MATCH ITEM
     const match = inventory.find(item =>
       message.includes(item.item) &&
       message.includes(item.size)
     );
 
     if (match) {
+      if (match.stock <= 0) {
+        // suggest alternative
+        const alternative = inventory.find(i =>
+          i.item === match.item && i.stock > 0
+        );
+
+        return res.json({
+          reply: alternative
+            ? `❌ ${match.name} is out of stock.\nTry ${alternative.name} for $${alternative.price} 👍`
+            : `❌ ${match.name} is currently out of stock.`
+        });
+      }
+
       return res.json({
-        reply: `💲 ${match.name} is $${match.price}`
+        reply: `💲 ${match.name} is $${match.price} (${match.stock} left)`
       });
     }
 
-    // 🔹 PREP INVENTORY FOR AI
+    // 🔹 INVENTORY TEXT FOR AI
     const inventoryText = inventory
-      .map(i => `${i.name} - $${i.price}`)
+      .filter(i => i.stock > 0)
+      .map(i => `${i.name} - $${i.price} (${i.stock} left)`)
       .join("\n");
 
-    // 🔹 AI RESPONSE (CONTROLLED)
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -111,20 +125,15 @@ app.post("/chat", async (req, res) => {
           content: `
 You are a sales assistant for a laser engraving business.
 
-IMPORTANT RULES:
-- ONLY recommend items from the inventory below
-- DO NOT make up products
-- If something is not available, say it's not available
-- ALWAYS suggest an alternative from the inventory
+RULES:
+- ONLY recommend items that are in stock
+- NEVER mention out-of-stock items
+- Always guide user to available products
+- Keep answers SHORT
+- Be persuasive but natural
 
 Available inventory:
 ${inventoryText}
-
-Behavior:
-- Keep responses SHORT
-- Be helpful and friendly
-- Guide customer toward a purchase
-- Recommend best sizes for photos (8x10, 10x8, etc.)
 `
         },
         {
