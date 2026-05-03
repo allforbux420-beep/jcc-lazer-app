@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html>
 <head>
 <meta charset="UTF-8">
@@ -95,26 +94,6 @@ body {
     color:#fff;
     padding:10px;
 }
-
-/* ===== FORCE REMOVE ARTICULATION CURVE ===== */
-section,
-.section,
-[class*="section"],
-[class*="hero"] {
-  border-radius: 0 !important;
-  overflow: visible !important;
-}
-
-/* remove shape dividers */
-svg {
-  display: none !important;
-}
-
-/* kill masking */
-* {
-  clip-path: none !important;
-  mask: none !important;
-}
 </style>
 
 </head>
@@ -134,21 +113,17 @@ svg {
 <div id="chatBox">
     <div class="chat-header">JCC Lazer Support</div>
 
+    <div class="chat-body" id="chat">
+        <div class="message bot">Hi! What would you like engraved?</div>
+    </div>
 
-<div class="chat-body" id="chat">
-    <div class="message bot">Hi! What would you like engraved?</div>
-</div>
-
-<div class="chat-input">
-    <input id="input" placeholder="Type your message..." />
-    <button onclick="send()">Send</button>
-</div>
-
-
+    <div class="chat-input">
+        <input id="input" placeholder="Type your message..." />
+        <button onclick="send()">Send</button>
+    </div>
 </div>
 
 <script>
-const toggle = document.getElementById("chatToggle");
 const box = document.getElementById("chatBox");
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
@@ -161,7 +136,6 @@ function startOrder(){
     box.style.display = "flex";
 }
 
-// 🔥 NEW SEND FUNCTION (CONNECTED TO SERVER)
 function send(){
     let text = input.value.trim();
     if(!text) return;
@@ -183,11 +157,11 @@ function send(){
         chat.innerHTML += `<div class="message bot">${data.reply}</div>`;
         chat.scrollTop = chat.scrollHeight;
     })
-    .catch(err => {
-        console.error(err);
-        chat.innerHTML += `<div class="message bot">Error connecting to server</div>`;
+    .catch(() => {
+        chat.innerHTML += `<div class="message bot">Server error</div>`;
     });
 }
 </script>
+
 </body>
 </html>
