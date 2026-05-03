@@ -27,14 +27,14 @@ cloudinary.config({
 });
 
 // =========================
-// OPENAI (CHATGPT)
+// OPENAI
 // =========================
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
 // =========================
-// CHECKOUT ROUTE
+// CHECKOUT
 // =========================
 app.post("/create-checkout-session", async (req, res) => {
   try {
@@ -79,13 +79,13 @@ app.post("/create-checkout-session", async (req, res) => {
 });
 
 // =========================
-// CHAT ROUTE (AI + INVENTORY)
+// CHAT (SMART + SAFE)
 // =========================
 app.post("/chat", async (req, res) => {
   try {
     const message = req.body.message.toLowerCase();
 
-    // 🔹 FIRST: try exact inventory match
+    // 🔹 HARD MATCH (fast + accurate pricing)
     const match = inventory.find(item =>
       message.includes(item.item) &&
       message.includes(item.size)
@@ -97,29 +97,34 @@ app.post("/chat", async (req, res) => {
       });
     }
 
-    // 🔹 FORMAT INVENTORY FOR AI CONTEXT
+    // 🔹 PREP INVENTORY FOR AI
     const inventoryText = inventory
       .map(i => `${i.name} - $${i.price}`)
       .join("\n");
 
-    // 🔹 AI RESPONSE
+    // 🔹 AI RESPONSE (CONTROLLED)
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
           content: `
-You are a helpful sales assistant for a laser engraving business.
+You are a sales assistant for a laser engraving business.
+
+IMPORTANT RULES:
+- ONLY recommend items from the inventory below
+- DO NOT make up products
+- If something is not available, say it's not available
+- ALWAYS suggest an alternative from the inventory
 
 Available inventory:
 ${inventoryText}
 
-Rules:
-- Be friendly and helpful
-- Recommend products when user is unsure
-- Suggest upgrades (bigger sizes look better for photos)
-- If user asks price, use inventory above
-- Keep responses short and natural
+Behavior:
+- Keep responses SHORT
+- Be helpful and friendly
+- Guide customer toward a purchase
+- Recommend best sizes for photos (8x10, 10x8, etc.)
 `
         },
         {
