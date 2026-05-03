@@ -1,7 +1,7 @@
 const express = require("express");
 const Stripe = require("stripe");
 const cloudinary = require("cloudinary").v2;
-
+const inventory = require('./inventory.json');
 const app = express();
 
 // Middleware
