@@ -8,7 +8,7 @@ const app = express();
 // IMPORTANT for images
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
-
+console.log("DATA RECEIVED:", { item, size, price, image });
 // STRIPE
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -39,6 +39,7 @@ const { item, size, price, image } = req.body;
          console.log("DATA:", { item, size, price, image });
     // CREATE STRIPE SESSION
     const session = await stripe.checkout.sessions.create({
+   console.log("SESSION URL:", session.url);
     payment_method_types: ["card"],
     line_items: [{
         price_data: {
