@@ -24,13 +24,13 @@ app.post("/create-checkout-session", async (req, res) => {
 try {
 const { item, size, price, image } = req.body;
 
-```
+
     let imageUrl = null;
 
     // 🔥 Upload image to Cloudinary
     if (image) {
         const upload = await cloudinary.uploader.upload(image, {
-            folder: "jcc-orders"
+    folder: "jcc-orders"
         });
 
         imageUrl = upload.secure_url;
@@ -44,7 +44,7 @@ const { item, size, price, image } = req.body;
             price_data: {
                 currency: "usd",
                 product_data: {
-                    name: `${item} (${size})`,
+                    name: item + " (" + size + ")",
                     images: imageUrl ? [imageUrl] : []
                 },
                 unit_amount: price * 100
