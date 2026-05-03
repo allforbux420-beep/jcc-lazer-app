@@ -1,13 +1,11 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 <meta charset="UTF-8">
-<title>JCC Laser</title>
+<title>JCC Lazer</title>
 
 <style>
-/* =========================
-   BASE
-========================= */
 body {
     margin:0;
     font-family:Arial, sans-serif;
@@ -43,35 +41,22 @@ body {
     cursor:pointer;
 }
 
-/* =========================
-   CHAT (FORCED FIX)
-========================= */
-
-/* MAX OVERRIDE */
-html body #jcc-chat,
-html body #chatToggle,
-html body #chatBox {
-    position: fixed !important;
-    z-index: 2147483647 !important;
-    font-family: Arial, sans-serif;
-}
-
-/* BUTTON */
+/* CHAT */
 #chatToggle {
-    bottom: 40px !important;
-    right: 20px !important;
+    position: fixed;
+    bottom: 40px;
+    right: 20px;
     background: #ff5a00;
-    color: #fff;
     padding: 14px 20px;
     border-radius: 50px;
     cursor: pointer;
-    white-space: nowrap;
+    z-index: 9999;
 }
 
-/* CHAT BOX */
 #chatBox {
-    bottom: 110px !important;
-    right: 20px !important;
+    position: fixed;
+    bottom: 110px;
+    right: 20px;
     width: 320px;
     height: 420px;
     background: #1a1a1a;
@@ -79,63 +64,58 @@ html body #chatBox {
     display: none;
     flex-direction: column;
     overflow: hidden;
+    z-index: 9999;
 }
 
-/* HEADER */
 .chat-header {
     padding: 12px;
     background: #111;
     border-bottom: 1px solid #222;
 }
 
-/* BODY */
 .chat-body {
     flex: 1;
     padding: 10px;
     overflow-y: auto;
-    font-size: 14px;
 }
 
-/* MESSAGES */
 .message {
     margin: 8px 0;
     padding: 10px;
     border-radius: 10px;
     max-width: 80%;
-    word-wrap: break-word;
 }
 
-.bot {
-    background: #2a2a2a;
-    color: #ccc;
-}
+.bot { background:#2a2a2a; color:#ccc; }
+.user { background:#ff5a00; margin-left:auto; }
 
-.user {
-    margin-left: auto;
-    background: #ff5a00;
-    color: #fff;
-}
-
-/* INPUT */
 .chat-input {
-    display: flex;
+    display:flex;
 }
 
 .chat-input input {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    background: #111;
-    color: #fff;
+    flex:1;
+    padding:10px;
+    border:none;
+    background:#111;
+    color:#fff;
 }
 
 .chat-input button {
-    background: #ff5a00;
-    border: none;
-    color: #fff;
-    padding: 10px;
+    background:#ff5a00;
+    border:none;
+    color:#fff;
+    padding:10px;
+    cursor:pointer;
+}
+
+img.preview {
+    width:100%;
+    margin-top:8px;
+    border-radius:10px;
 }
 </style>
+
 </head>
 
 <body>
@@ -150,90 +130,122 @@ html body #chatBox {
     </div>
 </div>
 
-<!-- CHAT (VERY IMPORTANT: KEEP AT BOTTOM) -->
-<div id="jcc-chat">
+<div id="chatToggle">💬 Support</div>
 
-    <div id="chatToggle">💬 Support</div>
+<div id="chatBox">
+    <div class="chat-header">JCC Laser Support</div>
 
-    <div id="chatBox">
-        <div class="chat-header">JCC Laser Support</div>
+```
+<div class="chat-body" id="chat">
+    <div class="message bot">Hi! What would you like engraved?</div>
+</div>
 
-        <div class="chat-body" id="chat">
-            <div class="message bot">
-                Hi! What would you like engraved?
-            </div>
-        </div>
-
-        <div class="chat-input">
-            <input id="input" placeholder="Type your message..." />
-            <button onclick="send()">Send</button>
-        </div>
-    </div>
+<div class="chat-input">
+    <input id="input" placeholder="Type your message..." />
+    <button onclick="send()">Send</button>
+</div>
+```
 
 </div>
 
 <script>
 let order = {};
+let uploadedImage = null;
 
 const toggle = document.getElementById("chatToggle");
 const box = document.getElementById("chatBox");
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 
-/* FIX CLICK (builder safe) */
-document.addEventListener("DOMContentLoaded", () => {
-    toggle.addEventListener("click", () => {
-        box.style.display = box.style.display === "flex" ? "none" : "flex";
-    });
-});
+toggle.onclick = () => {
+    box.style.display = box.style.display === "flex" ? "none" : "flex";
+};
 
-/* open from button */
 function startOrder(){
     box.style.display = "flex";
 }
 
-/* chat flow */
+function add(msg, type="bot"){
+    chat.innerHTML += `<div class="message ${type}">${msg}</div>`;
+    chat.scrollTop = chat.scrollHeight;
+}
+
 function send(){
     let text = input.value.trim();
     if(!text) return;
 
     input.value = "";
-
-    chat.innerHTML += `<div class="message user">${text}</div>`;
-    chat.scrollTop = chat.scrollHeight;
+    add(text,"user");
 
     if(!order.item){
         order.item = text;
-        chat.innerHTML += `<div class="message bot">What size? (4x6 or 8x10)</div>`;
+        add("What size? (4x6 or 8x10)");
         return;
     }
 
     if(!order.size){
         order.size = text;
         order.price = text.includes("8") ? 45 : 25;
-
-        chat.innerHTML += `<div class="message bot">What would you like engraved?</div>`;
+        add("What would you like engraved?");
         return;
     }
 
     if(!order.design){
         order.design = text;
-        chat.innerHTML += `<div class="message bot">What name should we put?</div>`;
+        add("What name should we put?");
         return;
     }
 
     if(!order.name){
         order.name = text;
 
-        chat.innerHTML += `
-        <div class="message bot">
-        <strong>Order Summary:</strong><br>
-        ${order.item}<br>
-        ${order.size}<br>
-        $${order.price}<br><br>
-        <button onclick="checkout()">Checkout</button>
-        </div>`;
+        add('Upload your image:<br><input type="file" id="fileInput">');
+
+        setTimeout(() => {
+            document.getElementById("fileInput").onchange = function(e){
+                const file = e.target.files[0];
+
+                const reader = new FileReader();
+                reader.onload = function(evt){
+                    uploadedImage = evt.target.result;
+                    add('<img src="' + uploadedImage + '" class="preview">');
+                    showCheckout();
+                };
+                reader.readAsDataURL(file);
+            };
+        }, 100);
+
         return;
+    }
+}
+
+function showCheckout(){
+    add(
+        "<strong>Order Summary:</strong><br>" +
+        order.item + "<br>" +
+        order.size + "<br>$" +
+        order.price +
+        "<br><br><button onclick='checkout()'>Checkout</button>"
+    );
+}
+
+async function checkout(){
+    try{
+        const res = await fetch("/create-checkout-session", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                ...order,
+                image: uploadedImage
+            })
+        });
+
+        const data = await res.json();
+        window.location = data.url;
+
+    }catch(e){
+        alert("Checkout failed");
+        console.error(e);
     }
 }
 </script>
