@@ -248,6 +248,22 @@ async function checkout(){
         console.error(e);
     }
 }
+// SHOW SUCCESS MESSAGE AFTER PAYMENT
+const urlParams = new URLSearchParams(window.location.search);
+
+if (urlParams.get("success")) {
+    setTimeout(() => {
+        box.style.display = "flex";
+        add("✅ Order placed successfully! We'll start working on it.");
+    }, 500);
+}
+
+if (urlParams.get("cancel")) {
+    setTimeout(() => {
+        box.style.display = "flex";
+        add("❌ Payment canceled. You can try again anytime.");
+    }, 500);
+}
 </script>
 
 </body>
