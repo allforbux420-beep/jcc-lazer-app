@@ -230,9 +230,30 @@ function send() {
         Upload your image:<br>
         <input type="file" id="fileInput"><br><br>
 
-        <button onclick="checkout()">Checkout</button>
+        <button id="checkoutBtn">Checkout</button>
         </div>`;
+setTimeout(() => {
+    const btn = document.getElementById("checkoutBtn");
+    if (btn) {
+        btn.addEventListener("click", checkout);
+        console.log("Checkout button wired");
+    }
 
+    const fileInput = document.getElementById("fileInput");
+    if (fileInput) {
+        fileInput.addEventListener("change", function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onloadend = () => {
+                order.image = reader.result;
+                console.log("Image saved");
+            };
+
+            if (file) reader.readAsDataURL(file);
+        });
+    }
+}, 100);
         return;
     }
 }
