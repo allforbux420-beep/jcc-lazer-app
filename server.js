@@ -25,32 +25,28 @@ api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 // ==========================
-// CHECKOUT ROUTE
+// ROUTES
 // ==========================
 app.post("/create-checkout-session", async (req, res) => {
 try {
+const { item, size, price, image } = req.body;
 
 ```
-    const { item, size, price, image } = req.body;
-
     console.log("DATA RECEIVED:", { item, size, price });
 
     let imageUrl = null;
 
-    // Upload image (safe)
     if (image) {
         try {
             const upload = await cloudinary.uploader.upload(image, {
                 folder: "jcc-orders"
             });
             imageUrl = upload.secure_url;
-            console.log("Uploaded image:", imageUrl);
-        } catch (uploadErr) {
-            console.error("Cloudinary error:", uploadErr.message);
+        } catch (e) {
+            console.error("Cloudinary upload failed:", e.message);
         }
     }
 
-    // Create Stripe session
     const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         line_items: [{
@@ -71,7 +67,6 @@ try {
 
     console.log("SESSION URL:", session.url);
 
-    // Send URL to frontend
     res.json({ url: session.url });
 
 } catch (err) {
@@ -86,4 +81,6 @@ try {
 // START SERVER
 // ==========================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Running on port", PORT));
+app.listen(PORT, () => {
+console.log("Server running on port", PORT);
+});
