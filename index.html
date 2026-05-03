@@ -17,18 +17,12 @@ body {
     text-align:center;
     padding:20px;
     font-size:22px;
-    border-bottom:1px solid #222;
 }
 
 .hero {
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding:80px 20px;
     text-align:center;
+    padding:80px 20px;
 }
-
-.hero h1 { font-size:40px; }
 
 .btn {
     background:#ff5a00;
@@ -48,7 +42,6 @@ body {
     padding: 14px 20px;
     border-radius: 50px;
     cursor: pointer;
-    z-index: 9999;
 }
 
 #chatBox {
@@ -61,33 +54,32 @@ body {
     border-radius: 16px;
     display: none;
     flex-direction: column;
-    overflow: hidden;
-    z-index: 9999;
 }
 
 .chat-header {
     padding: 12px;
     background: #111;
-    border-bottom: 1px solid #222;
 }
 
 .chat-body {
-    flex: 1;
-    padding: 10px;
-    overflow-y: auto;
+    flex:1;
+    padding:10px;
+    overflow-y:auto;
 }
 
 .message {
-    margin: 8px 0;
-    padding: 10px;
-    border-radius: 10px;
-    max-width: 80%;
+    margin:8px 0;
+    padding:10px;
+    border-radius:10px;
+    max-width:80%;
 }
 
-.bot { background:#2a2a2a; color:#ccc; }
+.bot { background:#2a2a2a; }
 .user { background:#ff5a00; margin-left:auto; }
 
-.chat-input { display:flex; }
+.chat-input {
+    display:flex;
+}
 
 .chat-input input {
     flex:1;
@@ -102,7 +94,6 @@ body {
     border:none;
     color:#fff;
     padding:10px;
-    cursor:pointer;
 }
 </style>
 
@@ -113,11 +104,9 @@ body {
 <div class="header">JCC Laser</div>
 
 <div class="hero">
-    <div>
-        <h1>Custom Laser Engraving That Lasts</h1>
-        <p>Slate • Wood • Glass • Tumblers</p>
-        <button class="btn" onclick="startOrder()">Start Your Order</button>
-    </div>
+    <h1>Custom Laser Engraving That Lasts</h1>
+    <p>Slate • Wood • Glass • Tumblers</p>
+    <button class="btn" onclick="startOrder()">Start Your Order</button>
 </div>
 
 <div id="chatToggle">💬 Support</div>
@@ -139,52 +128,50 @@ body {
 </div>
 
 <script>
-
 let order = {};
 
-document.addEventListener("DOMContentLoaded", () => {
-    const toggle = document.getElementById("chatToggle");
-    const box = document.getElementById("chatBox");
+const toggle = document.getElementById("chatToggle");
+const box = document.getElementById("chatBox");
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
 
-    toggle.addEventListener("click", () => {
-        box.style.display = box.style.display === "flex" ? "none" : "flex";
-    });
-});
+toggle.onclick = () => {
+    box.style.display = box.style.display === "flex" ? "none" : "flex";
+};
 
-function startOrder() {
-    document.getElementById("chatBox").style.display = "flex";
+function startOrder(){
+    box.style.display = "flex";
 }
 
-function send() {
-    let text = document.getElementById("input").value.trim();
-    if (!text) return;
+function send(){
+    let text = input.value.trim();
+    if(!text) return;
 
-    const chat = document.getElementById("chat");
-    document.getElementById("input").value = "";
+    input.value = "";
 
     chat.innerHTML += `<div class="message user">${text}</div>`;
     chat.scrollTop = chat.scrollHeight;
 
-    if (!order.item) {
+    if(!order.item){
         order.item = text;
         chat.innerHTML += `<div class="message bot">What size? (4x6 or 8x10)</div>`;
         return;
     }
 
-    if (!order.size) {
+    if(!order.size){
         order.size = text;
         order.price = text.includes("8") ? 45 : 25;
         chat.innerHTML += `<div class="message bot">What would you like engraved?</div>`;
         return;
     }
 
-    if (!order.design) {
+    if(!order.design){
         order.design = text;
         chat.innerHTML += `<div class="message bot">What name should we put?</div>`;
         return;
     }
 
-    if (!order.name) {
+    if(!order.name){
         order.name = text;
 
         const wrapper = document.createElement("div");
@@ -203,14 +190,14 @@ function send() {
         const btn = document.createElement("button");
         btn.textContent = "Checkout";
 
-        btn.addEventListener("click", checkout);
+        btn.onclick = checkout;
 
         wrapper.appendChild(btn);
         chat.appendChild(wrapper);
 
         // IMAGE HANDLER
         const fileInput = wrapper.querySelector("#fileInput");
-        fileInput.addEventListener("change", function(e) {
+        fileInput.addEventListener("change", function(e){
             const file = e.target.files[0];
             const reader = new FileReader();
 
@@ -219,14 +206,14 @@ function send() {
                 console.log("Image saved");
             };
 
-            if (file) reader.readAsDataURL(file);
+            if(file) reader.readAsDataURL(file);
         });
 
         return;
     }
 }
 
-async function checkout() {
+async function checkout(){
     try {
         const res = await fetch("/create-checkout-session", {
             method: "POST",
@@ -241,7 +228,7 @@ async function checkout() {
             })
         });
 
-        if (!res.ok) {
+        if(!res.ok){
             const text = await res.text();
             console.error("Server error:", text);
             alert("Server error during checkout");
@@ -250,18 +237,18 @@ async function checkout() {
 
         const data = await res.json();
 
-        if (data.url) {
+        if(data.url){
             window.location.href = data.url;
         } else {
+            console.error("No URL returned:", data);
             alert("Checkout failed");
         }
 
-    catch (err) {
-    console.error("Checkout error:", err);
-    alert("Checkout failed");
+    } catch (err){
+        console.error("Checkout error:", err);
+        alert("Checkout failed");
+    }
 }
-}
-
 </script>
 
 </body>

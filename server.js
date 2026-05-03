@@ -5,66 +5,80 @@ const cloudinary = require("cloudinary").v2;
 
 const app = express();
 
-// IMPORTANT for images
+// ✅ REQUIRED for image upload
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
-console.log("DATA RECEIVED:", { item, size, price, image });
-// STRIPE
+
+// ✅ STRIPE
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-// CLOUDINARY CONFIG
+// ✅ CLOUDINARY CONFIG
 cloudinary.config({
 cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
 api_key: process.env.CLOUDINARY_API_KEY,
 api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// ==========================
 // CHECKOUT ROUTE
+// ==========================
 app.post("/create-checkout-session", async (req, res) => {
 try {
-const { item, size, price, image } = req.body;
 
+```
+    const { item, size, price, image } = req.body;
+
+    console.log("DATA RECEIVED:", { item, size, price });
 
     let imageUrl = null;
 
-    // 🔥 Upload image to Cloudinary
+    // 🔥 Upload image (SAFE)
     if (image) {
-        const upload = await cloudinary.uploader.upload(image, {
-    folder: "jcc-orders"
-        });
-
-        imageUrl = upload.secure_url;
-        console.log("Uploaded image:", imageUrl);
+        try {
+            const upload = await cloudinary.uploader.upload(image, {
+                folder: "jcc-orders"
+            });
+            imageUrl = upload.secure_url;
+            console.log("Uploaded image:", imageUrl);
+        } catch (uploadErr) {
+            console.error("Cloudinary error:", uploadErr.message);
+        }
     }
-         console.log("DATA:", { item, size, price, image });
-    // CREATE STRIPE SESSION
+
+    // ✅ CREATE STRIPE SESSION
     const session = await stripe.checkout.sessions.create({
-   console.log("SESSION URL:", session.url);
-    payment_method_types: ["card"],
-    line_items: [{
-        price_data: {
-            currency: "usd",
-            product_data: {
-                name: item + " (" + size + ")",
-                images: imageUrl ? [imageUrl] : []
+        payment_method_types: ["card"],
+        line_items: [{
+            price_data: {
+                currency: "usd",
+                product_data: {
+                    name: item + " (" + size + ")",
+                    images: imageUrl ? [imageUrl] : []
+                },
+                unit_amount: Math.round(Number(price || 0) * 100)
             },
-            unit_amount: Math.round(Number(price) * 100)
-        },
-        quantity: 1
-    }],
-    mode: "payment",
-    success_url: "https://jcc-lazer-app.onrender.com?success=true",
-    cancel_url: "https://jcc-lazer-app.onrender.com?cancel=true"
-});
-console.log("SESSION URL:", session.url);
-  res.json({ url: session.url });
+            quantity: 1
+        }],
+        mode: "payment",
+        success_url: "https://jcc-lazer-app.onrender.com?success=true",
+        cancel_url: "https://jcc-lazer-app.onrender.com?cancel=true"
+    });
+
+    console.log("SESSION URL:", session.url);
+
+    // ✅ SEND URL BACK TO FRONTEND
+    res.json({ url: session.url });
 
 } catch (err) {
     console.error("FULL ERROR:", err);
     res.status(500).json({ error: err.message });
 }
+```
+
 });
 
+// ==========================
 // START SERVER
+// ==========================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Running on", PORT));
+app.listen(PORT, () => console.log("Running on port", PORT));
