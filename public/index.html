@@ -148,8 +148,7 @@ svg {
 </div>
 
 <script>
-let order = {};
-
+<script>
 const toggle = document.getElementById("chatToggle");
 const box = document.getElementById("chatBox");
 const chat = document.getElementById("chat");
@@ -163,98 +162,32 @@ function startOrder(){
     box.style.display = "flex";
 }
 
+// 🔥 NEW SEND FUNCTION (CONNECTED TO SERVER)
 function send(){
     let text = input.value.trim();
     if(!text) return;
 
     input.value = "";
 
+    // show user message
     chat.innerHTML += `<div class="message user">${text}</div>`;
     chat.scrollTop = chat.scrollHeight;
 
-    if(!order.item){
-        order.item = text;
-        chat.innerHTML += `<div class="message bot">What size? (4x6 or 8x10)</div>`;
-        return;
-    }
-
-    if(!order.size){
-        order.size = text;
-        order.price = text.includes("8") ? 45 : 25;
-        chat.innerHTML += `<div class="message bot">What would you like engraved?</div>`;
-        return;
-    }
-
-    if(!order.design){
-        order.design = text;
-        chat.innerHTML += `<div class="message bot">What name should we put?</div>`;
-        return;
-    }
-
-    if(!order.name){
-        order.name = text;
-
-        const wrapper = document.createElement("div");
-        wrapper.className = "message bot";
-
-        wrapper.innerHTML = `
-        <strong>Order Summary:</strong><br>
-        ${order.item}<br>
-        ${order.size}<br>
-        $${order.price}<br><br>
-
-        Upload your image:<br>
-        <input type="file" id="fileInput"><br><br>
-        `;
-
-        const btn = document.createElement("button");
-        btn.textContent = "Checkout";
-        btn.onclick = checkout;
-
-        wrapper.appendChild(btn);
-        chat.appendChild(wrapper);
-
-        const fileInput = wrapper.querySelector("#fileInput");
-        fileInput.addEventListener("change", function(e){
-            const file = e.target.files[0];
-            const reader = new FileReader();
-
-            reader.onloadend = () => {
-                order.image = reader.result;
-            };
-
-            if(file) reader.readAsDataURL(file);
-        });
-
-        return;
-    }
-}
-
-async function checkout() {
-    try {
-        const res = await fetch("/create-checkout-session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                item: order.item,
-                size: order.size,
-                price: order.price,
-                image: order.image || null
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.url) {
-            window.location.href = data.url;
-        } else {
-            alert("Checkout failed");
-        }
-
-    } catch (err) {
+    // send to backend
+    fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+    })
+    .then(res => res.json())
+    .then(data => {
+        chat.innerHTML += `<div class="message bot">${data.reply}</div>`;
+        chat.scrollTop = chat.scrollHeight;
+    })
+    .catch(err => {
         console.error(err);
-        alert("Checkout crashed");
-    }
+        chat.innerHTML += `<div class="message bot">Error connecting to server</div>`;
+    });
 }
 </script>
 </body>
