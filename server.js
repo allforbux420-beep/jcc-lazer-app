@@ -31,7 +31,7 @@ app.post("/create-checkout-session", async (req, res) => {
 try {
 const { item, size, price, image } = req.body;
 
-```
+
     console.log("DATA RECEIVED:", { item, size, price });
 
     let imageUrl = null;
@@ -73,7 +73,7 @@ const { item, size, price, image } = req.body;
     console.error("FULL ERROR:", err);
     res.status(500).json({ error: err.message });
 }
-```
+
 
 });
 
