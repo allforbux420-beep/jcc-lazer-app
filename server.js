@@ -2,7 +2,8 @@ const express = require("express");
 const Stripe = require("stripe");
 const cloudinary = require("cloudinary").v2;
 const OpenAI = require("openai");
-const inventory = require("./inventory.json");
+const fs = require("fs");
+const csv = require("csv-parser");
 
 const app = express();
 
@@ -22,87 +23,86 @@ const openai = new OpenAI({
 });
 
 // =========================
+// LOAD INVENTORY FROM CSV
+// =========================
+let inventory = [];
+
+function loadInventory() {
+  inventory = [];
+
+  fs.createReadStream("inventory.csv")
+    .pipe(csv())
+    .on("data", (row) => {
+      inventory.push({
+        name: row["Variant Name"],
+        item: (row["Base Product"] || "").toLowerCase(),
+        size: (row["Material"] || "").toLowerCase(),
+        price: parseFloat((row["Sell Price"] || "0").replace("$", "")) || 0,
+        stock: parseInt(row["Stock"] || "0")
+      });
+    })
+    .on("end", () => {
+      console.log("Inventory loaded:", inventory.length);
+    });
+}
+
+loadInventory();
+
+// =========================
 // CHECKOUT
 // =========================
 app.post("/create-checkout-session", async (req, res) => {
   try {
-    const { item, size, price, image } = req.body;
+    const { item, size } = req.body;
 
     const product = inventory.find(p =>
-      p.item === item && p.size === size
+      p.item.includes(item) && p.size.includes(size)
     );
 
     if (!product || product.stock <= 0) {
-      return res.status(400).json({
-        error: "Item out of stock"
-      });
+      return res.status(400).json({ error: "Out of stock" });
     }
 
-    let imageUrl = null;
-
-    if (image) {
-      const upload = await cloudinary.uploader.upload(image, {
-        folder: "jcc-orders",
-        resource_type: "image"
-      });
-      imageUrl = upload.secure_url;
-    }
-
-    // 🔥 reduce stock AFTER purchase attempt
     product.stock -= 1;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: `${item} (${size})`,
-              images: imageUrl ? [imageUrl] : []
-            },
-            unit_amount: Math.round(price * 100)
-          },
-          quantity: 1
-        }
-      ],
+      line_items: [{
+        price_data: {
+          currency: "usd",
+          product_data: { name: product.name },
+          unit_amount: Math.round(product.price * 100)
+        },
+        quantity: 1
+      }],
       mode: "payment",
-      success_url: "https://jcc-lazer-app.onrender.com?success=true",
-      cancel_url: "https://jcc-lazer-app.onrender.com?cancel=true"
+      success_url: "https://jcc-lazer-app.onrender.com",
+      cancel_url: "https://jcc-lazer-app.onrender.com"
     });
 
     res.json({ url: session.url });
 
   } catch (err) {
-    console.error("CHECKOUT ERROR:", err);
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
 
 // =========================
-// CHAT WITH STOCK LOGIC
+// CHAT
 // =========================
 app.post("/chat", async (req, res) => {
   try {
     const message = req.body.message.toLowerCase();
 
-    // 🔹 MATCH ITEM
-    const match = inventory.find(item =>
-      message.includes(item.item) &&
-      message.includes(item.size)
+    const match = inventory.find(p =>
+      message.includes(p.item) && message.includes(p.size)
     );
 
     if (match) {
       if (match.stock <= 0) {
-        // suggest alternative
-        const alternative = inventory.find(i =>
-          i.item === match.item && i.stock > 0
-        );
-
         return res.json({
-          reply: alternative
-            ? `❌ ${match.name} is out of stock.\nTry ${alternative.name} for $${alternative.price} 👍`
-            : `❌ ${match.name} is currently out of stock.`
+          reply: `❌ ${match.name} is out of stock`
         });
       }
 
@@ -111,7 +111,6 @@ app.post("/chat", async (req, res) => {
       });
     }
 
-    // 🔹 INVENTORY TEXT FOR AI
     const inventoryText = inventory
       .filter(i => i.stock > 0)
       .map(i => `${i.name} - $${i.price} (${i.stock} left)`)
@@ -123,17 +122,11 @@ app.post("/chat", async (req, res) => {
         {
           role: "system",
           content: `
-You are a sales assistant for a laser engraving business.
+Only recommend items from this inventory:
 
-RULES:
-- ONLY recommend items that are in stock
-- NEVER mention out-of-stock items
-- Always guide user to available products
-- Keep answers SHORT
-- Be persuasive but natural
-
-Available inventory:
 ${inventoryText}
+
+Keep answers short and helpful.
 `
         },
         {
@@ -143,18 +136,18 @@ ${inventoryText}
       ]
     });
 
-    const reply = completion.choices[0].message.content;
-
-    res.json({ reply });
+    res.json({
+      reply: completion.choices[0].message.content
+    });
 
   } catch (err) {
-    console.error("CHAT ERROR:", err);
-    res.json({ reply: "Something went wrong" });
+    console.error(err);
+    res.json({ reply: "Error" });
   }
 });
 
 // =========================
-// START SERVER
+// START
 // =========================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
