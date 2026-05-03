@@ -36,34 +36,32 @@ const { item, size, price, image } = req.body;
         imageUrl = upload.secure_url;
         console.log("Uploaded image:", imageUrl);
     }
-
+         console.log("DATA:", { item, size, price, image });
     // CREATE STRIPE SESSION
     const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: [{
-            price_data: {
-                currency: "usd",
-                product_data: {
-                    name: item + " (" + size + ")",
-                    images: imageUrl ? [imageUrl] : []
-                },
-                unit_amount: price * 100
+    payment_method_types: ["card"],
+    line_items: [{
+        price_data: {
+            currency: "usd",
+            product_data: {
+                name: item + " (" + size + ")",
+                images: imageUrl ? [imageUrl] : []
             },
-            quantity: 1
-        }],
-        mode: "payment",
-        success_url: "https://jcc-lazer-app.onrender.com?success=true",
-        cancel_url: "https://jcc-lazer-app.onrender.com?cancel=true"
-    });
+            unit_amount: Math.round(Number(price) * 100)
+        },
+        quantity: 1
+    }],
+    mode: "payment",
+    success_url: "https://jcc-lazer-app.onrender.com?success=true",
+    cancel_url: "https://jcc-lazer-app.onrender.com?cancel=true"
+});
 
-    res.json({ url: session.url });
+  res.json({ url: session.url });
 
 } catch (err) {
-    console.error("ERROR:", err);
-    res.status(500).send("Server error");
+    console.error("FULL ERROR:", err);
+    res.status(500).json({ error: err.message });
 }
-
-
 });
 
 // START SERVER
