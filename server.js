@@ -37,14 +37,14 @@ const { item, size, price, image } = req.body;
     let imageUrl = null;
 
     if (image) {
-        try {
-            const upload = await cloudinary.uploader.upload(image, {
-                folder: "jcc-orders"
-            });
-            imageUrl = upload.secure_url;
-        } catch (e) {
-            console.error("Cloudinary upload failed:", e.message);
-        }
+    const upload = await cloudinary.uploader.upload(image, {
+        folder: "jcc-orders",
+        resource_type: "image"
+    });
+
+    imageUrl = upload.secure_url;
+    console.log("Uploaded image:", imageUrl);
+   }
     }
 
     const session = await stripe.checkout.sessions.create({
