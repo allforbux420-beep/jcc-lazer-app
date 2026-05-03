@@ -1,18 +1,23 @@
 const express = require("express");
 const Stripe = require("stripe");
-const path = require("path");
 const cloudinary = require("cloudinary").v2;
 
 const app = express();
 
-// ✅ REQUIRED for image upload
+// ==========================
+// MIDDLEWARE
+// ==========================
 app.use(express.json({ limit: "10mb" }));
 app.use(express.static("public"));
 
-// ✅ STRIPE
+// ==========================
+// STRIPE
+// ==========================
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-// ✅ CLOUDINARY CONFIG
+// ==========================
+// CLOUDINARY
+// ==========================
 cloudinary.config({
 cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
 api_key: process.env.CLOUDINARY_API_KEY,
@@ -32,7 +37,7 @@ try {
 
     let imageUrl = null;
 
-    // 🔥 Upload image (SAFE)
+    // Upload image (safe)
     if (image) {
         try {
             const upload = await cloudinary.uploader.upload(image, {
@@ -45,7 +50,7 @@ try {
         }
     }
 
-    // ✅ CREATE STRIPE SESSION
+    // Create Stripe session
     const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         line_items: [{
@@ -66,7 +71,7 @@ try {
 
     console.log("SESSION URL:", session.url);
 
-    // ✅ SEND URL BACK TO FRONTEND
+    // Send URL to frontend
     res.json({ url: session.url });
 
 } catch (err) {
