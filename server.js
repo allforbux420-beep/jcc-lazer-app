@@ -18,12 +18,14 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Route
+  
+
+// =========================
+// 1️⃣ CHECKOUT ROUTE
+// =========================
 app.post("/create-checkout-session", async (req, res) => {
     try {
         const { item, size, price, image } = req.body;
-
-        console.log("DATA RECEIVED:", { item, size, price });
 
         let imageUrl = null;
 
@@ -34,7 +36,6 @@ app.post("/create-checkout-session", async (req, res) => {
             });
 
             imageUrl = upload.secure_url;
-            console.log("Uploaded image:", imageUrl);
         }
 
         const session = await stripe.checkout.sessions.create({
@@ -58,11 +59,43 @@ app.post("/create-checkout-session", async (req, res) => {
         res.json({ url: session.url });
 
     } catch (err) {
-        console.error("FULL ERROR:", err);
+        console.error(err);
         res.status(500).json({ error: err.message });
     }
 });
 
-// Start server
+
+// =========================
+// 2️⃣ 👉 ADD CHAT ROUTE HERE
+// =========================
+app.post('/chat', (req, res) => {
+    const message = req.body.message.toLowerCase();
+
+    const match = inventory.find(item =>
+        message.includes(item.item) &&
+        message.includes(item.size)
+    );
+
+    if (match) {
+        return res.json({
+            reply: `💲 ${match.size} ${match.item} is $${match.price}`
+        });
+    }
+
+    if (message.includes("price")) {
+        return res.json({
+            reply: "Tell me item + size (example: 4x6 slate)"
+        });
+    }
+
+    return res.json({
+        reply: "I can help with pricing and orders 👍"
+    });
+});
+
+
+// =========================
+// SERVER START
+// =========================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server running on port", PORT));
