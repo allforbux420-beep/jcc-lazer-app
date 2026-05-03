@@ -135,7 +135,6 @@ img.preview {
 <div id="chatBox">
     <div class="chat-header">JCC Laser Support</div>
 
-```
 <div class="chat-body" id="chat">
     <div class="message bot">Hi! What would you like engraved?</div>
 </div>
@@ -144,126 +143,137 @@ img.preview {
     <input id="input" placeholder="Type your message..." />
     <button onclick="send()">Send</button>
 </div>
-```
 
 </div>
 
 <script>
+
 let order = {};
-let uploadedImage = null;
 
-const toggle = document.getElementById("chatToggle");
-const box = document.getElementById("chatBox");
-const chat = document.getElementById("chat");
-const input = document.getElementById("input");
+// WAIT until page loads
+document.addEventListener("DOMContentLoaded", () => {
 
-toggle.onclick = () => {
-    box.style.display = box.style.display === "flex" ? "none" : "flex";
-};
+    const toggle = document.getElementById("chatToggle");
+    const box = document.getElementById("chatBox");
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("input");
+    const fileInput = document.getElementById("fileInput");
 
-function startOrder(){
-    box.style.display = "flex";
+    // Toggle chat
+    toggle.addEventListener("click", () => {
+        box.style.display = box.style.display === "flex" ? "none" : "flex";
+    });
+
+    // Image upload
+    if (fileInput) {
+        fileInput.addEventListener("change", function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onloadend = () => {
+                order.image = reader.result;
+                console.log("Image saved to order");
+            };
+
+            if (file) reader.readAsDataURL(file);
+        });
+    }
+
+});
+
+// START ORDER BUTTON
+function startOrder() {
+    document.getElementById("chatBox").style.display = "flex";
 }
 
-function add(msg, type="bot"){
-    chat.innerHTML += `<div class="message ${type}">${msg}</div>`;
+// CHAT FLOW
+function send() {
+    let text = document.getElementById("input").value.trim();
+    if (!text) return;
+
+    const chat = document.getElementById("chat");
+
+    document.getElementById("input").value = "";
+
+    chat.innerHTML += `<div class="message user">${text}</div>`;
     chat.scrollTop = chat.scrollHeight;
-}
 
-function send(){
-    let text = input.value.trim();
-    if(!text) return;
-
-    input.value = "";
-    add(text,"user");
-
-    if(!order.item){
+    if (!order.item) {
         order.item = text;
-        add("What size? (4x6 or 8x10)");
+        chat.innerHTML += `<div class="message bot">What size? (4x6 or 8x10)</div>`;
         return;
     }
 
-    if(!order.size){
+    if (!order.size) {
         order.size = text;
         order.price = text.includes("8") ? 45 : 25;
-        add("What would you like engraved?");
+        chat.innerHTML += `<div class="message bot">What would you like engraved?</div>`;
         return;
     }
 
-    if(!order.design){
+    if (!order.design) {
         order.design = text;
-        add("What name should we put?");
+        chat.innerHTML += `<div class="message bot">What name should we put?</div>`;
         return;
     }
 
-    if(!order.name){
+    if (!order.name) {
         order.name = text;
 
-        add('Upload your image:<br><input type="file" id="fileInput">');
+        chat.innerHTML += `
+        <div class="message bot">
+        <strong>Order Summary:</strong><br>
+        ${order.item}<br>
+        ${order.size}<br>
+        $${order.price}<br><br>
 
-        setTimeout(() => {
-            document.getElementById("fileInput").onchange = function(e){
-                const file = e.target.files[0];
+        Upload your image:<br>
+        <input type="file" id="fileInput"><br><br>
 
-                const reader = new FileReader();
-                reader.onload = function(evt){
-                    uploadedImage = evt.target.result;
-                    add('<img src="' + uploadedImage + '" class="preview">');
-                    showCheckout();
-                };
-                reader.readAsDataURL(file);
-            };
-        }, 100);
+        <button onclick="checkout()">Checkout</button>
+        </div>`;
 
         return;
     }
 }
 
-function showCheckout(){
-    add(
-        "<strong>Order Summary:</strong><br>" +
-        order.item + "<br>" +
-        order.size + "<br>$" +
-        order.price +
-        "<br><br><button onclick='checkout()'>Checkout</button>"
-    );
-}
-
-async function checkout(){
-    try{
+// CHECKOUT
+async function checkout() {
+    try {
         const res = await fetch("/create-checkout-session", {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({
-                ...order,
-                image: uploadedImage
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                item: order.item,
+                size: order.size,
+                price: order.price,
+                image: order.image || null
             })
         });
 
-        const data = await res.json();
-        window.location = data.url;
+        if (!res.ok) {
+            const text = await res.text();
+            console.error("Server error:", text);
+            alert("Server error during checkout");
+            return;
+        }
 
-    }catch(e){
-        alert("Checkout failed");
-        console.error(e);
+        const data = await res.json();
+
+        if (data.url) {
+            window.location.href = data.url;
+        } else {
+            alert("Checkout failed");
+        }
+
+    } catch (err) {
+        console.error("Checkout error:", err);
+        alert("Connection error");
     }
 }
-// SHOW SUCCESS MESSAGE AFTER PAYMENT
-const urlParams = new URLSearchParams(window.location.search);
 
-if (urlParams.get("success")) {
-    setTimeout(() => {
-        box.style.display = "flex";
-        add("✅ Order placed successfully! We'll start working on it. use our real time tracking site with your order#");
-    }, 500);
-}
-
-if (urlParams.get("cancel")) {
-    setTimeout(() => {
-        box.style.display = "flex";
-        add("❌ Payment canceled. You can try again anytime.");
-    }, 500);
-}
 </script>
 
 </body>
