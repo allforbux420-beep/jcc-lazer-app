@@ -55,7 +55,7 @@ const { item, size, price, image } = req.body;
     success_url: "https://jcc-lazer-app.onrender.com?success=true",
     cancel_url: "https://jcc-lazer-app.onrender.com?cancel=true"
 });
-
+console.log("SESSION URL:", session.url);
   res.json({ url: session.url });
 
 } catch (err) {
