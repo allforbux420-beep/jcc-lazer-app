@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin</title>
+
+<style>
+body{background:#111;color:#fff;font-family:Arial;padding:20px;}
+table{width:100%;border-collapse:collapse;}
+td,th{padding:10px;border-bottom:1px solid #333;text-align:center;}
+input,select{background:#222;color:#fff;padding:6px;}
+button{background:#ff5a00;color:#fff;border:none;padding:6px;}
+</style>
+</head>
+
+<body>
+
+<h1>Orders</h1>
+
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Status</th>
+<th>Progress</th>
+<th>Tracking</th>
+<th>Save</th>
+</tr>
+</thead>
+<tbody id="body"></tbody>
+</table>
+
+<script>
+
+const token="securetoken123";
+
+async function load(){
+  const res=await fetch("/admin/orders",{headers:{Authorization:token}});
+  const data=await res.json();
+
+  const body=document.getElementById("body");
+  body.innerHTML="";
+
+  data.forEach(o=>{
+    const row=document.createElement("tr");
+
+    row.innerHTML=`
+      <td>${o.orderId}</td>
+
+      <td>
+        <select id="s-${o.orderId}">
+          <option ${o.status==="Processing"?"selected":""}>Processing</option>
+          <option ${o.status==="Shipped"?"selected":""}>Shipped</option>
+        </select>
+      </td>
+
+      <td>
+        <input id="p-${o.orderId}" value="${o.progress}">
+      </td>
+
+      <td>
+        <input id="t-${o.orderId}" value="${o.tracking||""}">
+      </td>
+
+      <td>
+        <button onclick="save('${o.orderId}')">Save</button>
+      </td>
+    `;
+
+    body.appendChild(row);
+  });
+}
+
+async function save(id){
+  await fetch("/admin/update-order",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":token
+    },
+    body:JSON.stringify({
+      id,
+      status:document.getElementById("s-"+id).value,
+      progress:document.getElementById("p-"+id).value,
+      tracking:document.getElementById("t-"+id).value
+    })
+  });
+
+  alert("Saved");
+}
+
+load();
+</script>
+
+</body>
+</html>

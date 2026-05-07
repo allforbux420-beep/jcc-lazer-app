@@ -2,165 +2,317 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>JCC Lazer</title>
+<title>JCC Lazer Tracker</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-body {
-    margin:0;
-    font-family:Arial, sans-serif;
-    background: linear-gradient(135deg,#1a1a1a,#3a2a24);
-    color:#fff;
+
+*{
+  box-sizing:border-box;
 }
 
-.header {
-    text-align:center;
-    padding:20px;
-    font-size:22px;
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#050505;
+  font-family:Poppins;
+  color:#fff;
+  overflow:hidden;
 }
 
-.hero {
-    text-align:center;
-    padding:80px 20px;
+/* BACKGROUND GLOW */
+body::before{
+  content:"";
+  position:fixed;
+  width:500px;
+  height:500px;
+  background:rgba(255,90,0,0.15);
+  filter:blur(120px);
+  border-radius:50%;
+  bottom:-200px;
+  left:-150px;
 }
 
-.btn {
-    background:#ff5a00;
-    padding:14px 20px;
-    border:none;
-    border-radius:8px;
-    color:#fff;
-    cursor:pointer;
+/* CARD */
+.card{
+  width:380px;
+  background:#0b0b0b;
+  border-radius:28px;
+  padding:35px;
+  border:1px solid rgba(255,255,255,0.04);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.03),
+    0 20px 60px rgba(0,0,0,0.6);
+  position:relative;
 }
 
-/* CHAT */
-#chatToggle {
-    position: fixed;
-    bottom: 40px;
-    right: 20px;
-    background: #ff5a00;
-    padding: 14px 20px;
-    border-radius: 50px;
-    cursor: pointer;
+/* HEADER */
+.logo{
+  text-align:center;
+  font-size:24px;
+  font-weight:700;
+  letter-spacing:1px;
 }
 
-#chatBox {
-    position: fixed;
-    bottom: 110px;
-    right: 20px;
-    width: 320px;
-    height: 420px;
-    background: #1a1a1a;
-    border-radius: 16px;
-    display: none;
-    flex-direction: column;
+.sub{
+  text-align:center;
+  margin-top:8px;
+  color:#8b8b8b;
+  font-size:16px;
 }
 
-.chat-header {
-    padding: 12px;
-    background: #111;
+/* INPUT */
+input{
+  width:100%;
+  margin-top:28px;
+  background:#0d0d0d;
+  border:1px solid #1e1e1e;
+  border-radius:14px;
+  padding:16px;
+  color:#fff;
+  font-size:15px;
+  outline:none;
 }
 
-.chat-body {
-    flex:1;
-    padding:10px;
-    overflow-y:auto;
+input:focus{
+  border-color:#ff5a00;
 }
 
-.message {
-    margin:8px 0;
-    padding:10px;
-    border-radius:10px;
-    max-width:80%;
+/* BUTTON */
+button{
+  width:100%;
+  margin-top:16px;
+  border:none;
+  background:#ff5a00;
+  color:#fff;
+  padding:16px;
+  border-radius:14px;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.2s;
 }
 
-.bot { background:#2a2a2a; }
-.user { background:#ff5a00; margin-left:auto; }
-
-.chat-input {
-    display:flex;
+button:hover{
+  transform:translateY(-2px);
+  background:#ff6f1f;
 }
 
-.chat-input input {
-    flex:1;
-    padding:10px;
-    border:none;
-    background:#111;
-    color:#fff;
+/* INFO TEXT */
+.info{
+  text-align:center;
+  margin-top:16px;
+  color:#9a9a9a;
+  font-size:14px;
 }
 
-.chat-input button {
-    background:#ff5a00;
-    border:none;
-    color:#fff;
-    padding:10px;
+/* TIMER CIRCLE */
+.circleWrap{
+  width:90px;
+  height:90px;
+  margin:28px auto 18px auto;
+  position:relative;
 }
+
+.circle{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  background:
+    conic-gradient(#ff5a00 0deg,
+    #ff5a00 90deg,
+    #1d1d1d 90deg);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  animation:spin 2s linear infinite;
+}
+
+.circle::before{
+  content:"";
+  width:62px;
+  height:62px;
+  border-radius:50%;
+  background:#0b0b0b;
+}
+
+@keyframes spin{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+
+/* PROGRESS BAR */
+.bar{
+  width:100%;
+  height:10px;
+  background:#1a1a1a;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:20px;
+}
+
+.progress{
+  width:0%;
+  height:100%;
+  background:linear-gradient(90deg,#ff5a00,#ff7b00);
+  border-radius:20px;
+  transition:0.5s;
+}
+
+/* STATUS */
+.status{
+  text-align:center;
+  margin-top:18px;
+  font-size:18px;
+  font-weight:500;
+}
+
+/* TRACKING */
+.tracking{
+  text-align:center;
+  margin-top:10px;
+  color:#ff8c42;
+  font-size:14px;
+  word-break:break-word;
+}
+
+/* FOOTER */
+.footer{
+  text-align:center;
+  margin-top:28px;
+  font-size:15px;
+  color:#d9d9d9;
+}
+
+.footer span{
+  color:#ff5a00;
+}
+
+/* RESULT */
+#resultBox{
+  display:none;
+}
+
 </style>
-
 </head>
 
 <body>
 
-<div class="header">JCC Lazer</div>
+<div class="card">
 
-<div class="hero">
-    <h1>Custom Lazer Engraving That Lasts</h1>
-    <p>Slate • Wood • Glass • Tumblers</p>
-    <button class="btn" onclick="startOrder()">Start Your Order</button>
-</div>
+  <div class="logo">JCC LAZER</div>
+  <div class="sub">Order Tracking</div>
 
-<div id="chatToggle" onclick="openChat()">💬 Support</div>
+  <input id="orderInput" placeholder="Enter Order ID">
 
-<div id="chatBox">
-    <div class="chat-header">JCC Lazer Support</div>
+  <button onclick="searchOrder()">Track Order</button>
 
-    <div class="chat-body" id="chat">
-        <div class="message bot">Hi! What would you like engraved?</div>
-    </div>
+  <div class="info">
+    Timer begins when your order is placed ⏳
+  </div>
 
-    <div class="chat-input">
-        <input id="input" placeholder="Type your message..." />
-        <button onclick="send()">Send</button>
-    </div>
+  <div class="circleWrap">
+    <div class="circle"></div>
+  </div>
+
+  <div class="bar">
+    <div id="prog" class="progress"></div>
+  </div>
+
+  <div id="resultBox">
+
+    <div id="status" class="status"></div>
+
+    <div id="tracking" class="tracking"></div>
+
+  </div>
+
+  <div class="footer">
+    🚚 <span>Out the door before this timer ends!</span>
+  </div>
+
 </div>
 
 <script>
-const box = document.getElementById("chatBox");
-const chat = document.getElementById("chat");
-const input = document.getElementById("input");
 
-function openChat() {
-    box.style.display = box.style.display === "flex" ? "none" : "flex";
+async function searchOrder(){
+
+  const id = document.getElementById("orderInput").value.trim();
+
+  if(!id){
+    alert("Enter Order ID");
+    return;
+  }
+
+  const res = await fetch("/track-order/" + id);
+  const d = await res.json();
+
+  document.getElementById("resultBox").style.display = "block";
+
+  if(d.error){
+
+    document.getElementById("status").innerText =
+      "Order not found";
+
+    document.getElementById("tracking").innerText = "";
+
+    document.getElementById("prog").style.width = "0%";
+
+    return;
+  }
+
+  /* STATUS */
+  document.getElementById("status").innerText =
+    d.status || "Processing";
+
+  /* PROGRESS */
+  document.getElementById("prog").style.width =
+    (d.progress || 0) + "%";
+
+  /* TRACKING */
+  if(d.tracking){
+
+    let link = "";
+
+    if(d.tracking.startsWith("1Z")){
+      link = `https://www.ups.com/track?tracknum=${d.tracking}`;
+    }
+    else if(d.tracking.startsWith("9")){
+      link = `https://tools.usps.com/go/TrackConfirmAction?tLabels=${d.tracking}`;
+    }
+
+    if(link){
+      document.getElementById("tracking").innerHTML =
+        `<a href="${link}" target="_blank" style="color:#ff8c42;text-decoration:none;">
+          Tracking: ${d.tracking}
+        </a>`;
+    } else {
+      document.getElementById("tracking").innerText =
+        "Tracking: " + d.tracking;
+    }
+
+  } else {
+
+    document.getElementById("tracking").innerText =
+      "Tracking not available";
+
+  }
 }
 
-function startOrder(){
-    box.style.display = "flex";
-}
+/* ENTER KEY */
+document.getElementById("orderInput")
+.addEventListener("keydown", function(e){
 
-function send(){
-    let text = input.value.trim();
-    if(!text) return;
+  if(e.key === "Enter"){
+    searchOrder();
+  }
 
-    input.value = "";
+});
 
-    // show user message
-    chat.innerHTML += `<div class="message user">${text}</div>`;
-    chat.scrollTop = chat.scrollHeight;
-
-    // send to backend
-    fetch('/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
-    })
-    .then(res => res.json())
-    .then(data => {
-        chat.innerHTML += `<div class="message bot">${data.reply}</div>`;
-        chat.scrollTop = chat.scrollHeight;
-    })
-    .catch(() => {
-        chat.innerHTML += `<div class="message bot">Server error</div>`;
-    });
-}
 </script>
 
 </body>

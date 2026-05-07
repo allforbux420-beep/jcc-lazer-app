@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Track Order</title>
+
+<style>
+body{
+  background:#0d0d0d;
+  color:#fff;
+  font-family:Arial;
+  text-align:center;
+  padding:30px;
+}
+
+input{
+  padding:10px;
+  width:200px;
+}
+
+button{
+  padding:10px;
+  background:#ff5a00;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
+
+.timeline{
+  margin-top:30px;
+  display:flex;
+  justify-content:space-between;
+  position:relative;
+}
+
+.step{
+  flex:1;
+  text-align:center;
+  opacity:0.4;
+}
+
+.step.active{
+  opacity:1;
+  color:#ff5a00;
+}
+
+.bar{
+  height:6px;
+  background:#222;
+  margin-top:20px;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.progress{
+  height:100%;
+  width:0%;
+  background:#ff5a00;
+  transition:0.6s;
+}
+
+img{
+  max-width:220px;
+  margin-top:20px;
+  border-radius:10px;
+}
+
+a{
+  color:#ff5a00;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Track Your Order</h1>
+
+<input id="id" placeholder="Order ID">
+<button onclick="track()">Track</button>
+
+<div id="preview"></div>
+
+<!-- TIMELINE -->
+<div class="timeline">
+  <div class="step" id="step1">Processing</div>
+  <div class="step" id="step2">Engraving</div>
+  <div class="step" id="step3">Shipped</div>
+  <div class="step" id="step4">Delivered</div>
+</div>
+
+<div class="bar">
+  <div id="prog" class="progress"></div>
+</div>
+
+<p id="status"></p>
+<p id="tracking"></p>
+
+<script>
+
+function updateTimeline(status){
+
+  const steps = {
+    "Processing":1,
+    "Engraving":2,
+    "Shipped":3,
+    "Delivered":4
+  };
+
+  const current = steps[status] || 1;
+
+  for(let i=1;i<=4;i++){
+    const el = document.getElementById("step"+i);
+    el.classList.remove("active");
+    if(i<=current) el.classList.add("active");
+  }
+
+  document.getElementById("prog").style.width =
+    (current / 4 * 100) + "%";
+}
+
+function getCarrierLink(tracking){
+
+  if(tracking.startsWith("1Z")){
+    return {
+      name:"UPS",
+      url:`https://www.ups.com/track?tracknum=${tracking}`
+    };
+  }
+
+  if(tracking.startsWith("9")){
+    return {
+      name:"USPS",
+      url:`https://tools.usps.com/go/TrackConfirmAction?tLabels=${tracking}`
+    };
+  }
+
+  return null;
+}
+
+async function track(){
+
+  const id = document.getElementById("id").value;
+
+  const res = await fetch("/track-order/" + id);
+  const d = await res.json();
+
+  if(d.error){
+    document.getElementById("status").innerText = "Order not found";
+    return;
+  }
+
+  /* STATUS */
+  document.getElementById("status").innerText = d.status;
+
+  updateTimeline(d.status);
+
+  /* IMAGE */
+  if(d.image){
+    document.getElementById("preview").innerHTML =
+      `<img src="${d.image}">`;
+  }
+
+  /* TRACKING */
+  if(d.tracking){
+
+    const carrier = getCarrierLink(d.tracking);
+
+    if(carrier){
+      document.getElementById("tracking").innerHTML =
+        `${carrier.name}: <a href="${carrier.url}" target="_blank">${d.tracking}</a>`;
+    } else {
+      document.getElementById("tracking").innerText =
+        "Tracking: " + d.tracking;
+    }
+
+  } else {
+    document.getElementById("tracking").innerText =
+      "Tracking not available yet";
+  }
+}
+
+/* AUTO LOAD */
+const params = new URLSearchParams(window.location.search);
+const autoId = params.get("id");
+
+if(autoId){
+  document.getElementById("id").value = autoId;
+  track();
+}
+
+</script>
+
+</body>
+</html>

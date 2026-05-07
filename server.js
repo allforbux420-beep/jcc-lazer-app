@@ -1,155 +1,163 @@
 const express = require("express");
-const Stripe = require("stripe");
-const cloudinary = require("cloudinary").v2;
-const OpenAI = require("openai");
 const fs = require("fs");
 const csv = require("csv-parser");
+const nodemailer = require("nodemailer");
 
 const app = express();
-
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json());
 app.use(express.static("public"));
 
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const ADMIN_TOKEN = "securetoken123";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+/* =========================
+   EMAIL CONFIG
+========================= */
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
 });
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+/* =========================
+   SAVE ORDER
+========================= */
+function saveOrder(order){
+  const file = "orders.csv";
 
-// =========================
-// LOAD INVENTORY FROM CSV
-// =========================
-let inventory = [];
+  const line = `${order.id},${order.product},${order.status},${order.progress},${order.created},${order.image || ""},${order.text || ""},${order.tracking || ""},${order.email || ""}\n`;
 
-function loadInventory() {
-  inventory = [];
+  if(!fs.existsSync(file)){
+    fs.writeFileSync(file,"orderId,product,status,progress,created,image,text,tracking,email\n");
+  }
 
-  fs.createReadStream("inventory.csv")
-    .pipe(csv())
-    .on("data", (row) => {
-      inventory.push({
-        name: row["Variant Name"],
-        item: (row["Base Product"] || "").toLowerCase(),
-        size: (row["Material"] || "").toLowerCase(),
-        price: parseFloat((row["Sell Price"] || "0").replace("$", "")) || 0,
-        stock: parseInt(row["Stock"] || "0")
-      });
-    })
-    .on("end", () => {
-      console.log("Inventory loaded:", inventory.length);
-    });
+  fs.appendFileSync(file,line);
 }
 
-loadInventory();
-
-// =========================
-// CHECKOUT
-// =========================
-app.post("/create-checkout-session", async (req, res) => {
-  try {
-    const { item, size } = req.body;
-
-    const product = inventory.find(p =>
-      p.item.includes(item) && p.size.includes(size)
-    );
-
-    if (!product || product.stock <= 0) {
-      return res.status(400).json({ error: "Out of stock" });
-    }
-
-    product.stock -= 1;
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: [{
-        price_data: {
-          currency: "usd",
-          product_data: { name: product.name },
-          unit_amount: Math.round(product.price * 100)
-        },
-        quantity: 1
-      }],
-      mode: "payment",
-      success_url: "https://jcc-lazer-app.onrender.com",
-      cancel_url: "https://jcc-lazer-app.onrender.com"
-    });
-
-    res.json({ url: session.url });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+/* =========================
+   ADMIN LOGIN
+========================= */
+app.post("/admin/login",(req,res)=>{
+  if(req.body.password === "jccadmin123"){
+    return res.json({ token: ADMIN_TOKEN });
   }
+  res.status(401).json({ error:"Invalid password" });
 });
 
-// =========================
-// CHAT
-// =========================
-app.post("/chat", async (req, res) => {
-  try {
-    const message = req.body.message.toLowerCase();
+/* =========================
+   VERIFY ADMIN
+========================= */
+function verifyAdmin(req,res,next){
+  if(req.headers.authorization !== ADMIN_TOKEN){
+    return res.status(403).json({ error:"Unauthorized" });
+  }
+  next();
+}
 
-    const match = inventory.find(p =>
-      message.includes(p.item) && message.includes(p.size)
-    );
+/* =========================
+   GET ORDERS
+========================= */
+app.get("/admin/orders",verifyAdmin,(req,res)=>{
+  let results=[];
 
-    if (match) {
-      if (match.stock <= 0) {
-        return res.json({
-          reply: `❌ ${match.name} is out of stock`
-        });
+  fs.createReadStream("orders.csv")
+    .pipe(csv())
+    .on("data",row=>results.push(row))
+    .on("end",()=>res.json(results));
+});
+
+/* =========================
+   UPDATE ORDER
+========================= */
+app.post("/admin/update-order",verifyAdmin,(req,res)=>{
+  const { id,status,progress,tracking } = req.body;
+
+  let orders=[];
+
+  fs.createReadStream("orders.csv")
+    .pipe(csv())
+    .on("data",row=>{
+
+      if(row.orderId === id){
+
+        const hadTracking = row.tracking;
+
+        row.progress = progress;
+
+        // AUTO SHIP
+        if(tracking && tracking.trim() !== ""){
+          row.status = "Shipped";
+          row.tracking = tracking;
+
+          // SEND EMAIL ONLY FIRST TIME
+          if(!hadTracking && row.email){
+
+            transporter.sendMail({
+              from: process.env.EMAIL_USER,
+              to: row.email,
+              subject: "Your Order Has Shipped!",
+              html: `
+                <h2>Your order is on the way 🚚</h2>
+                <p><b>Tracking Number:</b> ${tracking}</p>
+                <p><a href="http://localhost:3000/track.html?id=${row.orderId}">
+                Track Your Order</a></p>
+              `
+            });
+          }
+
+        } else {
+          row.status = status;
+          row.tracking = "";
+        }
       }
 
-      return res.json({
-        reply: `💲 ${match.name} is $${match.price} (${match.stock} left)`
+      orders.push(row);
+    })
+    .on("end",()=>{
+
+      const header="orderId,product,status,progress,created,image,text,tracking,email\n";
+
+      const lines = orders.map(o=>
+        `${o.orderId},${o.product},${o.status},${o.progress},${o.created},${o.image||""},${o.text||""},${o.tracking||""},${o.email||""}`
+      ).join("\n");
+
+      fs.writeFileSync("orders.csv",header+lines);
+
+      res.json({ success:true });
+    });
+});
+
+/* =========================
+   TRACK ORDER
+========================= */
+app.get("/track-order/:id",(req,res)=>{
+  const id=req.params.id;
+
+  let results=[];
+
+  fs.createReadStream("orders.csv")
+    .pipe(csv())
+    .on("data",row=>{
+      if(row.orderId.trim()===id.trim()){
+        results.push(row);
+      }
+    })
+    .on("end",()=>{
+      if(!results.length){
+        return res.json({ error:"Order not found" });
+      }
+
+      const o=results[0];
+
+      res.json({
+        id:o.orderId,
+        status:o.status,
+        progress:o.progress,
+        tracking:o.tracking,
+        image:o.image
       });
-    }
-
-    const inventoryText = inventory
-      .filter(i => i.stock > 0)
-      .map(i => `${i.name} - $${i.price} (${i.stock} left)`)
-      .join("\n");
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
-Only recommend items from this inventory:
-
-${inventoryText}
-
-Keep answers short and helpful.
-`
-        },
-        {
-          role: "user",
-          content: message
-        }
-      ]
     });
-
-    res.json({
-      reply: completion.choices[0].message.content
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.json({ reply: "Error" });
-  }
 });
 
-// =========================
-// START
-// =========================
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
-});
+app.listen(3000,()=>console.log("Server running"));
