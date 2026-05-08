@@ -1,191 +1,205 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Track Order</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Track Your Order - JCC Lazer</title>
 
 <style>
+
 body{
-  background:#0d0d0d;
-  color:#fff;
-  font-family:Arial;
-  text-align:center;
-  padding:30px;
+margin:0;
+font-family:Arial,sans-serif;
+background:#050505;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+background-image:url('https://www.jcclazer.com/storage/13082/a19dcff3-ef46-49cd-b3b6-3d6c19cdb558/welcome_logo69ecf51bd09ee.png');
+background-size:cover;
+background-position:center;
+}
+
+.tracker-box{
+width:90%;
+max-width:500px;
+background:rgba(0,0,0,0.88);
+padding:40px;
+border-radius:24px;
+box-shadow:0 0 30px rgba(255,102,0,0.4);
+}
+
+h1{
+text-align:center;
+font-size:42px;
+margin-bottom:10px;
+color:#ff6600;
+}
+
+p{
+text-align:center;
+color:#ccc;
+margin-bottom:25px;
 }
 
 input{
-  padding:10px;
-  width:200px;
+width:100%;
+padding:16px;
+border:none;
+border-radius:14px;
+background:#111;
+color:white;
+font-size:18px;
+margin-bottom:20px;
 }
 
 button{
-  padding:10px;
-  background:#ff5a00;
-  color:#fff;
-  border:none;
-  cursor:pointer;
+width:100%;
+padding:16px;
+border:none;
+border-radius:14px;
+background:#ff6600;
+color:white;
+font-size:20px;
+font-weight:bold;
+cursor:pointer;
+transition:.3s;
 }
 
-.timeline{
-  margin-top:30px;
-  display:flex;
-  justify-content:space-between;
-  position:relative;
+button:hover{
+background:#ff7b1a;
+transform:scale(1.02);
 }
 
-.step{
-  flex:1;
-  text-align:center;
-  opacity:0.4;
+#trackingStatus{
+margin-top:25px;
+font-size:18px;
+line-height:1.6;
+text-align:center;
 }
 
-.step.active{
-  opacity:1;
-  color:#ff5a00;
+.progress-bar{
+width:100%;
+height:16px;
+background:#222;
+border-radius:30px;
+overflow:hidden;
+margin-top:25px;
 }
 
-.bar{
-  height:6px;
-  background:#222;
-  margin-top:20px;
-  border-radius:10px;
-  overflow:hidden;
+.progress-fill{
+height:100%;
+width:0%;
+background:linear-gradient(90deg,#ff6600,#ffaa33);
+transition:1s;
 }
 
-.progress{
-  height:100%;
-  width:0%;
-  background:#ff5a00;
-  transition:0.6s;
-}
-
-img{
-  max-width:220px;
-  margin-top:20px;
-  border-radius:10px;
-}
-
-a{
-  color:#ff5a00;
-}
 </style>
 </head>
 
 <body>
 
-<h1>Track Your Order</h1>
+<div class="tracker-box">
 
-<input id="id" placeholder="Order ID">
-<button onclick="track()">Track</button>
+<h1>Track Order</h1>
 
-<div id="preview"></div>
+<p>Enter your order ID below</p>
 
-<!-- TIMELINE -->
-<div class="timeline">
-  <div class="step" id="step1">Processing</div>
-  <div class="step" id="step2">Engraving</div>
-  <div class="step" id="step3">Shipped</div>
-  <div class="step" id="step4">Delivered</div>
+<input id="orderInput" type="text" placeholder="Enter Order ID">
+
+<button onclick="trackOrder()">Track Order</button>
+
+<div id="trackingStatus">
+Waiting for tracking update...
 </div>
 
-<div class="bar">
-  <div id="prog" class="progress"></div>
+<div class="progress-bar">
+<div id="progressFill" class="progress-fill"></div>
 </div>
 
-<p id="status"></p>
-<p id="tracking"></p>
+</div>
 
 <script>
 
-function updateTimeline(status){
+async function trackOrder() {
 
-  const steps = {
-    "Processing":1,
-    "Engraving":2,
-    "Shipped":3,
-    "Delivered":4
-  };
+const orderId = document.getElementById("orderInput").value.trim();
 
-  const current = steps[status] || 1;
+const statusBox = document.getElementById("trackingStatus");
 
-  for(let i=1;i<=4;i++){
-    const el = document.getElementById("step"+i);
-    el.classList.remove("active");
-    if(i<=current) el.classList.add("active");
-  }
+const progressFill = document.getElementById("progressFill");
 
-  document.getElementById("prog").style.width =
-    (current / 4 * 100) + "%";
+statusBox.innerHTML = "Searching order...";
+
+try {
+
+const response = await fetch("https://docs.google.com/spreadsheets/d/1a4HCDTu-Ai1tXunxGTRh0xDCkqLs22YIkYu6yO_-OjE/edit?usp=sharing");
+
+const data = await response.json();
+
+const order = data.find(item => item.OrderID === orderId);
+
+if(order){
+
+let stageText = "";
+let progress = "0%";
+
+switch(order.Stage){
+
+case "1":
+stageText = "Order received.";
+progress = "15%";
+break;
+
+case "2":
+stageText = "Preparing design.";
+progress = "35%";
+break;
+
+case "3":
+stageText = "Currently engraving.";
+progress = "65%";
+break;
+
+case "4":
+stageText = "Ready to ship.";
+progress = "85%";
+break;
+
+case "5":
+stageText = "Package shipped.";
+progress = "100%";
+break;
+
+default:
+stageText = "Unknown tracking stage.";
+
 }
 
-function getCarrierLink(tracking){
+statusBox.innerHTML = `
+<strong>${order.Name}</strong><br>
+${stageText}<br><br>
+Order Date: ${order.OrderDate}
+`;
 
-  if(tracking.startsWith("1Z")){
-    return {
-      name:"UPS",
-      url:`https://www.ups.com/track?tracknum=${tracking}`
-    };
-  }
+progressFill.style.width = progress;
 
-  if(tracking.startsWith("9")){
-    return {
-      name:"USPS",
-      url:`https://tools.usps.com/go/TrackConfirmAction?tLabels=${tracking}`
-    };
-  }
+} else {
 
-  return null;
+statusBox.innerHTML = "Order ID not found.";
+
+progressFill.style.width = "0%";
+
 }
 
-async function track(){
+} catch(error){
 
-  const id = document.getElementById("id").value;
+statusBox.innerHTML = "Tracker offline.";
 
-  const res = await fetch("/track-order/" + id);
-  const d = await res.json();
-
-  if(d.error){
-    document.getElementById("status").innerText = "Order not found";
-    return;
-  }
-
-  /* STATUS */
-  document.getElementById("status").innerText = d.status;
-
-  updateTimeline(d.status);
-
-  /* IMAGE */
-  if(d.image){
-    document.getElementById("preview").innerHTML =
-      `<img src="${d.image}">`;
-  }
-
-  /* TRACKING */
-  if(d.tracking){
-
-    const carrier = getCarrierLink(d.tracking);
-
-    if(carrier){
-      document.getElementById("tracking").innerHTML =
-        `${carrier.name}: <a href="${carrier.url}" target="_blank">${d.tracking}</a>`;
-    } else {
-      document.getElementById("tracking").innerText =
-        "Tracking: " + d.tracking;
-    }
-
-  } else {
-    document.getElementById("tracking").innerText =
-      "Tracking not available yet";
-  }
 }
 
-/* AUTO LOAD */
-const params = new URLSearchParams(window.location.search);
-const autoId = params.get("id");
-
-if(autoId){
-  document.getElementById("id").value = autoId;
-  track();
 }
 
 </script>
